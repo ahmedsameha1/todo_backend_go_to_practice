@@ -1,10 +1,10 @@
-package routers
+package common
 
 import (
 	"github.com/gin-gonic/gin"
 )
 
-type router interface {
+type Router interface {
 	POST(relativePath string, handlers ...gin.HandlerFunc) gin.IRoutes
 	PUT(relativePath string, handlers ...gin.HandlerFunc) gin.IRoutes
 	GET(relativePath string, handlers ...gin.HandlerFunc) gin.IRoutes
@@ -12,27 +12,37 @@ type router interface {
 }
 
 type PosterMock struct {
-	called int8
+	Called int8
 }
 
 func (p *PosterMock) POST(relativePath string, handlers ...gin.HandlerFunc) gin.IRoutes {
-	p.called++
+	p.Called++
 	return nil
 }
 
 func (p *PosterMock) PUT(relativePath string, handlers ...gin.HandlerFunc) gin.IRoutes {
-	p.called++
+	p.Called++
 	return nil
 }
 
 func (p *PosterMock) GET(relativePath string, handlers ...gin.HandlerFunc) gin.IRoutes {
-	p.called++
+	p.Called++
 	return nil
 }
 
 func (p *PosterMock) DELETE(relativePath string, handlers ...gin.HandlerFunc) gin.IRoutes {
-	p.called++
+	p.Called++
 	return nil
 }
 
-//const handlerPlaceholder func(ctx *gin.Context) = func(ctx *gin.Context) {}
+type Logger interface{
+	Printf(format string, v ...any)
+}
+
+type LoggerMock struct {
+	Called int
+}
+
+func (l *LoggerMock) Printf(format string, v ...any) {
+	l.Called++
+}

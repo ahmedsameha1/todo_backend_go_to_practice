@@ -1,8 +1,11 @@
 package routers
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/ahmedsameha1/todo_backend_go_to_practice/common"
+	"github.com/gin-gonic/gin"
+)
 
-func SetTodoRoutes(poster router) router {
+func SetTodoRoutes(poster common.Router) common.Router {
 	poster.POST("/todos", func(ctx *gin.Context) {})
 	poster.PUT("/todos/{id}", func(ctx *gin.Context) {})
 	poster.GET("/todos", func(ctx *gin.Context) {})
