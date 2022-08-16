@@ -16,6 +16,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var anErrString string = "An error"
+var anError error = errors.New(anErrString)
+
 func TestCreate(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	mockCtrl := gomock.NewController(t)
@@ -27,16 +30,13 @@ func TestCreate(t *testing.T) {
 	todoRepositoryMock.EXPECT().Create(&todo).Return(&todo, nil)
 	createTodo := Create(todoRepositoryMock)
 	assert.NotNil(t, createTodo)
-	///
 	v, _ := json.Marshal(todo)
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 	r, _ := http.NewRequest("POST", "/todos", bytes.NewBuffer(v))
 	c.Request = r
 	createTodo(c)
-	if w.Code != http.StatusOK {
-		t.Errorf("Expects response code to be: %d, but it is: %d", http.StatusOK, w.Code)
-	}
+	assert.Equal(t, http.StatusOK, w.Code)
 	var got gin.H
 	err := json.Unmarshal(w.Body.Bytes(), &got)
 	if err != nil {
@@ -49,6 +49,7 @@ func TestCreate(t *testing.T) {
 	}
 	assert.Equal(t, want, got)
 }
+
 func TestCreateWhenTodoRepositoryReturnError(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	mockCtrl := gomock.NewController(t)
@@ -57,75 +58,21 @@ func TestCreateWhenTodoRepositoryReturnError(t *testing.T) {
 	todo := model.Todo{Title: "title1",
 		Description: "description1",
 		Done:        &done}
-	//todoRepositoryMock.On("CreateTodo", &todo).Return(nil, errors.New("An error"))
 	todoRepositoryMock.EXPECT().Create(&todo).Return(nil, errors.New("An error"))
 	createTodo := Create(todoRepositoryMock)
 	assert.NotNil(t, createTodo)
-	///
-	//todoRepositoryMock.AssertExpectations(t)
 	ExpectsErrors(t, createTodo, todo,
 		"POST", "/todos", http.StatusInternalServerError,
 		[]string{"An error"})
 }
-func TestCreateNoTitleInRequestBody(t *testing.T) {
+
+func TestCreateRequiredFieldsAreNotPresentInRequestBody(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	todoRepositoryMock := common.NewMockTodoRepository(mockCtrl)
 	createTodo := Create(todoRepositoryMock)
 	assert.NotNil(t, createTodo)
-	///
 	ExpectsErrors(t, createTodo, model.Todo{},
-		"POST", "/todos", http.StatusBadRequest, []string{"Title"})
-}
-
-func TestCreateEmptyTitleInRequestBody(t *testing.T) {
-	mockCtrl := gomock.NewController(t)
-	todoRepositoryMock := common.NewMockTodoRepository(mockCtrl)
-	createTodo := Create(todoRepositoryMock)
-	assert.NotNil(t, createTodo)
-	///
-	ExpectsErrors(t, createTodo, model.Todo{Title: ""},
-		"POST", "/todos", http.StatusBadRequest, []string{"Title"})
-}
-
-func TestCreateNoDescriptionInRequestBody(t *testing.T) {
-	mockCtrl := gomock.NewController(t)
-	todoRepositoryMock := common.NewMockTodoRepository(mockCtrl)
-	createTodo := Create(todoRepositoryMock)
-	assert.NotNil(t, createTodo)
-	///
-	ExpectsErrors(t, createTodo, model.Todo{Title: "title1"},
-		"POST", "/todos", http.StatusBadRequest, []string{"Description"})
-}
-
-func TestCreateEmptyDescriptionInRequestBody(t *testing.T) {
-	mockCtrl := gomock.NewController(t)
-	todoRepositoryMock := common.NewMockTodoRepository(mockCtrl)
-	createTodo := Create(todoRepositoryMock)
-	assert.NotNil(t, createTodo)
-	///
-	ExpectsErrors(t, createTodo, model.Todo{Title: "", Description: ""},
-		"POST", "/todos", http.StatusBadRequest, []string{"Title"})
-}
-
-func TestCreateEmptyTitleAndNoDescriptionInRequestBody(t *testing.T) {
-	mockCtrl := gomock.NewController(t)
-	todoRepositoryMock := common.NewMockTodoRepository(mockCtrl)
-	createTodo := Create(todoRepositoryMock)
-	assert.NotNil(t, createTodo)
-	///
-	ExpectsErrors(t, createTodo, model.Todo{Title: ""},
-		"POST", "/todos", http.StatusBadRequest, []string{"Title", "Description"})
-}
-
-func TestCreateNoDoneInRequestBody(t *testing.T) {
-	mockCtrl := gomock.NewController(t)
-	todoRepositoryMock := common.NewMockTodoRepository(mockCtrl)
-	createTodo := Create(todoRepositoryMock)
-	assert.NotNil(t, createTodo)
-	///
-	ExpectsErrors(t, createTodo, model.Todo{Title: "title1",
-		Description: "description1"},
-		"POST", "/todos", http.StatusBadRequest, []string{"Done"})
+		"POST", "/todos", http.StatusBadRequest, []string{"Title", "Description", "Done"})
 }
 
 func TestGetAllWhenTodoRepositoryReturnEmptyArray(t *testing.T) {
@@ -140,9 +87,7 @@ func TestGetAllWhenTodoRepositoryReturnEmptyArray(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/todos", nil)
 	ctx.Request = req
 	getTodos(ctx)
-	if r.Code != http.StatusOK {
-		t.Errorf("Expects response code to be: %d, but it is: %d", http.StatusOK, r.Code)
-	}
+	assert.Equal(t, http.StatusOK, r.Code)
 	var got []gin.H
 	err := json.Unmarshal(r.Body.Bytes(), &got)
 	if err != nil {
@@ -169,9 +114,7 @@ func TestGetAllWhenTodoRepositoryReturnNonEmptyArray(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/todos", nil)
 	ctx.Request = req
 	getTodos(ctx)
-	if r.Code != http.StatusOK {
-		t.Errorf("Expects response code to be: %d, but it is: %d", http.StatusOK, r.Code)
-	}
+	assert.Equal(t, http.StatusOK, r.Code)
 	var got []model.Todo
 	err := json.Unmarshal(r.Body.Bytes(), &got)
 	if err != nil {
@@ -292,6 +235,165 @@ func TestGetAllByUserIdWhenTodoRepositoryReturnError(t *testing.T) {
 		http.StatusInternalServerError, []string{})
 }
 
+func TestUpdate(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	todoRepositoryMock := createTodoRepositoryMock(t)
+	update := Update(todoRepositoryMock)
+	assert.NotNil(t, update)
+	userId := uuid.New()
+	done := false
+	todo := model.Todo{Title: "title1",
+		Description: "description1",
+		Done:        &done}
+	todoRepositoryMock.EXPECT().Update(&todo).Return(nil)
+	todoJson, _ := json.Marshal(todo)
+	r := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(r)
+	req, _ := http.NewRequest("PUT", "/todos/", bytes.NewBuffer(todoJson))
+	ctx.Request = req
+	ctx.Params = []gin.Param{{Key: "id", Value: userId.String()}}
+	update(ctx)
+	assert.Equal(t, http.StatusNoContent, r.Code)
+	assert.Len(t, r.Body.Bytes(), 0)
+}
+
+func TestUpdateWhenInvalidIdIsSent(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	todoRepositoryMock := createTodoRepositoryMock(t)
+	update := Update(todoRepositoryMock)
+	assert.NotNil(t, update)
+	done := false
+	todo := model.Todo{Title: "title1",
+		Description: "description1",
+		Done:        &done}
+	todoRepositoryMock.EXPECT().Update(gomock.Any()).Times(0)
+	todoJson, _ := json.Marshal(todo)
+	r := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(r)
+	req, _ := http.NewRequest("PUT", "/todos/", bytes.NewBuffer(todoJson))
+	ctx.Request = req
+	ctx.Params = []gin.Param{{Key: "id", Value: "71ca04c4-2d88-4bc0-a5a3-47446098905n"}}
+	update(ctx)
+	assert.Equal(t, http.StatusBadRequest, r.Code)
+	var got gin.H
+	err := json.Unmarshal(r.Body.Bytes(), &got)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Contains(t, got["error"], "UUID")
+}
+
+func TestUpdateRequiredFieldsAreNotPresentInRequestBody(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	todoRepositoryMock := createTodoRepositoryMock(t)
+	update := Update(todoRepositoryMock)
+	assert.NotNil(t, update)
+	todoRepositoryMock.EXPECT().Update(gomock.Any()).Times(0)
+	todoJson, _ := json.Marshal(model.Todo{})
+	r := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(r)
+	req, _ := http.NewRequest("PUT", "/todos/", bytes.NewBuffer(todoJson))
+	ctx.Request = req
+	ctx.Params = []gin.Param{{Key: "id", Value: "71ca04c4-2d88-4bc0-a5a3-474460989058"}}
+	update(ctx)
+	assert.Equal(t, http.StatusBadRequest, r.Code)
+	var got gin.H
+	err := json.Unmarshal(r.Body.Bytes(), &got)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, value := range []string{"Title", "Description", "Done"} {
+		assert.Contains(t, got["error"], value)
+	}
+}
+
+func TestUpdateWhenTodoRepositoryReturnAnError(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	todoRepositoryMock := createTodoRepositoryMock(t)
+	update := Update(todoRepositoryMock)
+	assert.NotNil(t, update)
+	userId := uuid.New()
+	done := false
+	todo := model.Todo{Title: "title1",
+		Description: "description1",
+		Done:        &done}
+	todoRepositoryMock.EXPECT().Update(&todo).Return(errors.New("An error"))
+	todoJson, _ := json.Marshal(todo)
+	r := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(r)
+	req, _ := http.NewRequest("PUT", "/todos/", bytes.NewBuffer(todoJson))
+	ctx.Request = req
+	ctx.Params = []gin.Param{{Key: "id", Value: userId.String()}}
+	update(ctx)
+	assert.Equal(t, http.StatusInternalServerError, r.Code)
+	var got gin.H
+	err := json.Unmarshal(r.Body.Bytes(), &got)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Contains(t, got["error"], "An error")
+}
+
+func TestDelete(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	todoRepositoryMock := createTodoRepositoryMock(t)
+	todoId := uuid.New()
+	todoRepositoryMock.EXPECT().Delete(todoId).Return(nil)
+	delete := Delete(todoRepositoryMock)
+	assert.NotNil(t, delete)
+	r := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(r)
+	req, _ := http.NewRequest("DELETE", "/todos/", nil)
+	ctx.Request = req
+	ctx.Params = []gin.Param{{Key: "id", Value: todoId.String()}}
+	delete(ctx)
+	assert.Equal(t, http.StatusNoContent, r.Code)
+	assert.Len(t, r.Body.Bytes(), 0)
+}
+
+func TestDeleteWhenInvalidIdIsSent(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	todoRepositoryMock := createTodoRepositoryMock(t)
+	todoRepositoryMock.EXPECT().Delete(gomock.Any()).Times(0)
+	delete := Delete(todoRepositoryMock)
+	assert.NotNil(t, delete)
+	r := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(r)
+	req, _ := http.NewRequest("DELETE", "/todos/", nil)
+	ctx.Request = req
+	ctx.Params = []gin.Param{{Key: "id", Value: "71ca04c4-2d88-4bc0-a5a3-47446098905n"}}
+	delete(ctx)
+	assert.Equal(t, http.StatusBadRequest, r.Code)
+	var got gin.H
+	err := json.Unmarshal(r.Body.Bytes(), &got)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Contains(t, got["error"], "UUID")
+}
+
+func TestDeleteWhenTodoRepositoryReturnAnError(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	todoRepositoryMock := createTodoRepositoryMock(t)
+	todoId := uuid.New()
+	todoRepositoryMock.EXPECT().Delete(todoId).Return(anError)
+	delete := Delete(todoRepositoryMock)
+	assert.NotNil(t, delete)
+	r := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(r)
+	req, _ := http.NewRequest("DELETE", "/todos/", nil)
+	ctx.Request = req
+	ctx.Params = []gin.Param{{Key: "id", Value: todoId.String()}}
+	delete(ctx)
+	assert.Equal(t, http.StatusInternalServerError, r.Code)
+	var got gin.H
+	err := json.Unmarshal(r.Body.Bytes(), &got)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Contains(t, got["error"], anErrString)
+}
+
 func createTodoRepositoryMock(t *testing.T) *common.MockTodoRepository {
 	t.Helper()
 	mockCtrl := gomock.NewController(t)
@@ -310,9 +412,7 @@ func ExpectsErrors(t *testing.T, handler gin.HandlerFunc, td model.Todo,
 	req, _ := http.NewRequest(verb, path, bytes.NewBuffer(tdr))
 	ctx.Request = req
 	handler(ctx)
-	if r.Code != code {
-		t.Errorf("Code should be: %d but it is: %d", code, r.Code)
-	}
+	assert.Equal(t, code, r.Code)
 	var got gin.H
 	err = json.Unmarshal(r.Body.Bytes(), &got)
 	if err != nil {
@@ -333,9 +433,7 @@ func ExpectsErrorsGetVerb(t *testing.T, handler gin.HandlerFunc, path string, pa
 		ctx.Params = params
 	}
 	handler(ctx)
-	if r.Code != code {
-		t.Errorf("Code should be: %d but it is: %d", code, r.Code)
-	}
+	assert.Equal(t, code, r.Code)
 	var got gin.H
 	err := json.Unmarshal(r.Body.Bytes(), &got)
 	if err != nil {

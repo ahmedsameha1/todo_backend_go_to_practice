@@ -50,6 +50,20 @@ func (mr *MockTodoRepositoryMockRecorder) Create(arg0 interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockTodoRepository)(nil).Create), arg0)
 }
 
+// Delete mocks base method.
+func (m *MockTodoRepository) Delete(arg0 uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockTodoRepositoryMockRecorder) Delete(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockTodoRepository)(nil).Delete), arg0)
+}
+
 // GetAll mocks base method.
 func (m *MockTodoRepository) GetAll() ([]model.Todo, error) {
 	m.ctrl.T.Helper()
@@ -93,4 +107,18 @@ func (m *MockTodoRepository) GetById(arg0 uuid.UUID) (*model.Todo, error) {
 func (mr *MockTodoRepositoryMockRecorder) GetById(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockTodoRepository)(nil).GetById), arg0)
+}
+
+// Update mocks base method.
+func (m *MockTodoRepository) Update(arg0 *model.Todo) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Update indicates an expected call of Update.
+func (mr *MockTodoRepositoryMockRecorder) Update(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockTodoRepository)(nil).Update), arg0)
 }

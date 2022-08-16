@@ -13,45 +13,15 @@ type Router interface {
 	DELETE(relativePath string, handlers ...gin.HandlerFunc) gin.IRoutes
 }
 
-type PosterMock struct {
-	Called int8
-}
-
-func (p *PosterMock) POST(relativePath string, handlers ...gin.HandlerFunc) gin.IRoutes {
-	p.Called++
-	return nil
-}
-
-func (p *PosterMock) PUT(relativePath string, handlers ...gin.HandlerFunc) gin.IRoutes {
-	p.Called++
-	return nil
-}
-
-func (p *PosterMock) GET(relativePath string, handlers ...gin.HandlerFunc) gin.IRoutes {
-	p.Called++
-	return nil
-}
-
-func (p *PosterMock) DELETE(relativePath string, handlers ...gin.HandlerFunc) gin.IRoutes {
-	p.Called++
-	return nil
-}
-
 type Logger interface{
 	Printf(format string, v ...any)
 }
 
-type LoggerMock struct {
-	Called int
-}
-
-func (l *LoggerMock) Printf(format string, v ...any) {
-	l.Called++
-}
-
 type TodoRepository interface {
-	Create(*model.Todo) (*model.Todo, error)
+	Create(todo *model.Todo) (*model.Todo, error)
 	GetAll() ([]model.Todo, error)
 	GetById(id uuid.UUID) (*model.Todo, error)
 	GetAllByUserId(id uuid.UUID) ([]model.Todo, error)
+	Update(todo *model.Todo) error
+	Delete(id uuid.UUID) error
 }
