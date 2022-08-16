@@ -1,7 +1,9 @@
 package common
 
 import (
+	"github.com/ahmedsameha1/todo_backend_go_to_practice/model"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type Router interface {
@@ -45,4 +47,11 @@ type LoggerMock struct {
 
 func (l *LoggerMock) Printf(format string, v ...any) {
 	l.Called++
+}
+
+type TodoRepository interface {
+	Create(*model.Todo) (*model.Todo, error)
+	GetAll() ([]model.Todo, error)
+	GetById(id uuid.UUID) (*model.Todo, error)
+	GetAllByUserId(id uuid.UUID) ([]model.Todo, error)
 }

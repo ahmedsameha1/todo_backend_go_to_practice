@@ -4,14 +4,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type appError struct {
+type AppError struct {
 	Error string `json:"error"`
-	Message string `json:"message"`
-	HttpStatus float64 `json:"Status"`
+	Message string `json:"message,omitempty"`
 }
 
 func DisplayAppError(ctx *gin.Context, log Logger, handlerError error, messege string, code float64) {
-	errObj := appError{HttpStatus: code, Error: handlerError.Error(), Message: messege}
-	log.Printf("appError %s\n", errObj.Error)
+	errObj := AppError{Error: handlerError.Error(), Message: messege}
+	log.Printf("%v\n", errObj)
 	ctx.JSON(int(code), errObj)
 }

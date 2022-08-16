@@ -27,7 +27,7 @@ func TestDisplayAppError(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := gin.H{"Status": code, "error": handlerErr.Error(), "message": message}
+	want := gin.H{"error": handlerErr.Error(), "message": message}
 	assert.Equal(t, want, got)
 	assert.Equal(t, 1, log.Called)
 }

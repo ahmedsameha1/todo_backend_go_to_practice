@@ -8,8 +8,8 @@ import (
 
 type Todo struct {
 	Id uuid.UUID `json:"id"`
-	Title string `json:"title"`
-	Description string `json:"description"`
-	Done bool `json:"done"`
+	Title string `json:"title" binding:"required"`
+	Description string `json:"description" binding:"required"`
+	Done *bool `json:"done" binding:"required"`
 	CreatedAt time.Time `json:"createdAt"`
 }
