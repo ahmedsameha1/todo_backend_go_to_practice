@@ -18,7 +18,7 @@ type Logger interface{
 }
 
 type TodoRepository interface {
-	Create(todo *model.Todo) (*model.Todo, error)
+	Create(todo *model.Todo) error
 	GetAll() ([]model.Todo, error)
 	GetById(id uuid.UUID) (*model.Todo, error)
 	GetAllByUserId(id uuid.UUID) ([]model.Todo, error)

@@ -28,12 +28,12 @@ func Create(todoRepository common.TodoRepository) func(*gin.Context) {
 				"", http.StatusBadRequest)
 			return
 		}
-		createdTodo, err := todoRepository.Create(&json)
+		err := todoRepository.Create(&json)
 		if err != nil {
 			common.SendBackAnAppError(ctx, logger, err,
 				"", http.StatusInternalServerError)
 		} else {
-			ctx.JSON(http.StatusOK, createdTodo)
+			ctx.JSON(http.StatusOK, json)
 		}
 	}
 }

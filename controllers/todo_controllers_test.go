@@ -27,7 +27,7 @@ func TestCreate(t *testing.T) {
 	todo := model.Todo{Title: "title1",
 		Description: "description1",
 		Done:        &done}
-	todoRepositoryMock.EXPECT().Create(&todo).Return(&todo, nil)
+	todoRepositoryMock.EXPECT().Create(&todo).Return(nil)
 	createTodo := Create(todoRepositoryMock)
 	assert.NotNil(t, createTodo)
 	v, _ := json.Marshal(todo)
@@ -58,7 +58,7 @@ func TestCreateWhenTodoRepositoryReturnError(t *testing.T) {
 	todo := model.Todo{Title: "title1",
 		Description: "description1",
 		Done:        &done}
-	todoRepositoryMock.EXPECT().Create(&todo).Return(nil, errors.New("An error"))
+	todoRepositoryMock.EXPECT().Create(&todo).Return(errors.New("An error"))
 	createTodo := Create(todoRepositoryMock)
 	assert.NotNil(t, createTodo)
 	ExpectsErrors(t, createTodo, todo,
@@ -69,6 +69,7 @@ func TestCreateWhenTodoRepositoryReturnError(t *testing.T) {
 func TestCreateRequiredFieldsAreNotPresentInRequestBody(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	todoRepositoryMock := common.NewMockTodoRepository(mockCtrl)
+	todoRepositoryMock.EXPECT().Create(gomock.Any()).Times(0)
 	createTodo := Create(todoRepositoryMock)
 	assert.NotNil(t, createTodo)
 	ExpectsErrors(t, createTodo, model.Todo{},
