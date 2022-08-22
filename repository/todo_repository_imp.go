@@ -15,9 +15,10 @@ var ErrTodoIsNil error = errors.New("this todo is nil")
 var ErrNotFound = errors.New("item is not found")
 
 const (
-	insertTodoQuery   string = "insert into todo (id, title, description, done, createdAt) values ($1, $2, $3, $4, $5)"
-	allTodosQuery     string = "select * from todo"
-	specificTodoQuery string = "select * from todo where id = $1"
+	insertTodoQuery    string = "insert into todo (id, title, description, done, createdAt) values ($1, $2, $3, $4, $5)"
+	allTodosQuery      string = "select * from todo"
+	specificTodoQuery  string = "select * from todo where id = $1"
+	allTodosOfSomeUser string = "select * from todo where user_id = $1"
 )
 
 type TodoRepositoryImpl struct {
@@ -100,6 +101,37 @@ func (tr TodoRepositoryImpl) GetById(id uuid.UUID) (*model.Todo, error) {
 			return nil, ErrNotFound
 		}
 	}
+}
+
+func (tr TodoRepositoryImpl) GetAllByUserId(id uuid.UUID) ([]model.Todo, error) {
+	if tr.DBPool == nil {
+		return nil, ErrTodoRepositoryInitialization
+	}
+	rows, _ := tr.DBPool.Query(context.Background(), allTodosOfSomeUser, id)
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	todos := []model.Todo{}
+	for rows.Next() {
+		todo := model.Todo{}
+		if err := rows.Scan(&todo.Id); err != nil {
+			return nil, err
+		}
+		if err := rows.Scan(&todo.Title); err != nil {
+			return nil, err
+		}
+		if err := rows.Scan(&todo.Description); err != nil {
+			return nil, err
+		}
+		if err := rows.Scan(&todo.Done); err != nil {
+			return nil, err
+		}
+		if err := rows.Scan(&todo.CreatedAt); err != nil {
+			return nil, err
+		}
+		todos = append(todos, todo)
+	}
+	return todos, nil
 }
 
 /*
