@@ -12,10 +12,12 @@ import (
 
 var ErrTodoRepositoryInitialization error = errors.New("DBPool is nil")
 var ErrTodoIsNil error = errors.New("this todo is nil")
+var ErrNotFound = errors.New("item is not found")
 
 const (
-	insertTodoQuery string = "insert into todo (id, title, description, done, createdAt) values ($1, $2, $3, $4, $5)"
-	queryAllTodos   string = "select * from todo"
+	insertTodoQuery   string = "insert into todo (id, title, description, done, createdAt) values ($1, $2, $3, $4, $5)"
+	allTodosQuery     string = "select * from todo"
+	specificTodoQuery string = "select * from todo where id = $1"
 )
 
 type TodoRepositoryImpl struct {
@@ -40,7 +42,7 @@ func (tr TodoRepositoryImpl) GetAll() ([]model.Todo, error) {
 	if tr.DBPool == nil {
 		return nil, ErrTodoRepositoryInitialization
 	}
-	rows, _ := tr.DBPool.Query(context.Background(), queryAllTodos)
+	rows, _ := tr.DBPool.Query(context.Background(), allTodosQuery)
 
 	todos := []model.Todo{}
 	for rows.Next() {
@@ -68,8 +70,39 @@ func (tr TodoRepositoryImpl) GetAll() ([]model.Todo, error) {
 	return todos, nil
 }
 
+func (tr TodoRepositoryImpl) GetById(id uuid.UUID) (*model.Todo, error) {
+	if tr.DBPool == nil {
+		return nil, ErrTodoRepositoryInitialization
+	}
+	rows, _ := tr.DBPool.Query(context.Background(), specificTodoQuery, id)
+	if err := rows.Err(); err != nil {
+		return nil, err
+	} else {
+		todo := model.Todo{}
+		if rows.Next() {
+			if err := rows.Scan(&todo.Id); err != nil {
+				return nil, err
+			}
+			if err := rows.Scan(&todo.Title); err != nil {
+				return nil, err
+			}
+			if err := rows.Scan(&todo.Description); err != nil {
+				return nil, err
+			}
+			if err := rows.Scan(&todo.Done); err != nil {
+				return nil, err
+			}
+			if err := rows.Scan(&todo.CreatedAt); err != nil {
+				return nil, err
+			}
+			return &todo, nil
+		} else {
+			return nil, ErrNotFound
+		}
+	}
+}
+
 /*
-func (tr TodoRepositoryImpl) GetById(id uuid.UUID) (*model.Todo, error)
 func (tr TodoRepositoryImpl) GetAllByUserId(id uuid.UUID) ([]model.Todo, error)
 func (tr TodoRepositoryImpl) Update(todo *model.Todo) error
 func (tr TodoRepositoryImpl) Delete(id uuid.UUID) error
