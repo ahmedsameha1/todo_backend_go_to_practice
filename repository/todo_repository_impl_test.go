@@ -501,7 +501,7 @@ func TestGetByIdWhenDBPoolIsNil(t *testing.T) {
 	assert.Equal(t, ErrTodoRepositoryInitialization, err)
 }
 
-func TestGetAllByUserId(t *testing.T){
+func TestGetAllByUserId(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
@@ -544,7 +544,7 @@ func TestGetAllByUserId(t *testing.T){
 	assert.NoError(t, err)
 }
 
-func TestGetAllByUserId2(t *testing.T){
+func TestGetAllByUserId2(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
@@ -561,7 +561,7 @@ func TestGetAllByUserId2(t *testing.T){
 	assert.NoError(t, err)
 }
 
-func TestGetAllByUserWhenErrReturnAnError(t *testing.T){
+func TestGetAllByUserWhenErrReturnAnError(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
@@ -577,7 +577,7 @@ func TestGetAllByUserWhenErrReturnAnError(t *testing.T){
 	assert.Equal(t, anError, err)
 }
 
-func TestGetAllByUserIdWhenScanReturnAnError(t *testing.T){
+func TestGetAllByUserIdWhenScanReturnAnError(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
@@ -604,7 +604,7 @@ func TestGetAllByUserIdWhenScanReturnAnError(t *testing.T){
 	assert.Equal(t, anError, err)
 }
 
-func TestGetAllByUserIdWhenScanReturnAnError2(t *testing.T){
+func TestGetAllByUserIdWhenScanReturnAnError2(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
@@ -646,7 +646,7 @@ func TestGetAllByUserIdWhenScanReturnAnError2(t *testing.T){
 	assert.Equal(t, anError, err)
 }
 
-func TestGetAllByUserIdWhenIDGeneratorOrCreatedAtGeneratorIsNil(t *testing.T){
+func TestGetAllByUserIdWhenIDGeneratorOrCreatedAtGeneratorIsNil(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
@@ -663,7 +663,7 @@ func TestGetAllByUserIdWhenIDGeneratorOrCreatedAtGeneratorIsNil(t *testing.T){
 	assert.NoError(t, err)
 }
 
-func TestGetAllByUserIdWhenDBPoolIsNil(t *testing.T){
+func TestGetAllByUserIdWhenDBPoolIsNil(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
@@ -679,4 +679,84 @@ func TestGetAllByUserIdWhenDBPoolIsNil(t *testing.T){
 	todos, err := todoRepositoryImpl.GetAllByUserId(userId)
 	assert.Nil(t, todos)
 	assert.Equal(t, ErrTodoRepositoryInitialization, err)
+}
+
+func TestUpdate(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	dbPoolMock := common.NewMockDBPool(mockCtrl)
+	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
+		IDGenerator: nil, CreatedAtGenerator: nil}
+	todoDone1 := false
+	todo := model.Todo{Id: uuid.New(), Title: "title1", Description: "description1",
+		Done: &todoDone1, CreatedAt: time.Now()}
+	dbPoolMock.EXPECT().Exec(gomock.Any(), updateQuery, todo.Id, todo.Title,
+		todo.Description, todo.Done).Return(nil, nil)
+	err := todoRepositoryImpl.Update(&todo)
+	assert.NoError(t, err)
+}
+
+func TestUpdateWhenDBPoolReturnAnError(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	dbPoolMock := common.NewMockDBPool(mockCtrl)
+	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
+		IDGenerator: nil, CreatedAtGenerator: nil}
+	todoDone1 := false
+	todo := model.Todo{Id: uuid.New(), Title: "title1", Description: "description1",
+		Done: &todoDone1, CreatedAt: time.Now()}
+	dbPoolMock.EXPECT().Exec(gomock.Any(), updateQuery, todo.Id, todo.Title,
+		todo.Description, todo.Done).Return(nil, anError)
+	err := todoRepositoryImpl.Update(&todo)
+	assert.Equal(t, anError, err)
+}
+
+func TestUpdateWhenDBoolIsNil(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	dbPoolMock := common.NewMockDBPool(mockCtrl)
+	todoRepositoryImpl := TodoRepositoryImpl{DBPool: nil,
+		IDGenerator: nil, CreatedAtGenerator: nil}
+	todoDone1 := false
+	todo := model.Todo{Id: uuid.New(), Title: "title1", Description: "description1",
+		Done: &todoDone1, CreatedAt: time.Now()}
+	dbPoolMock.EXPECT().Exec(gomock.Any(), updateQuery, todo.Id, todo.Title,
+		todo.Description, todo.Done).Times(0)
+	err := todoRepositoryImpl.Update(&todo)
+	assert.Equal(t, ErrTodoRepositoryInitialization, err)
+}
+
+func TestUpdateWhenIDGeneratorOrCreatedAtGeneratorIsNil(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	dbPoolMock := common.NewMockDBPool(mockCtrl)
+	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
+		IDGenerator: nil, CreatedAtGenerator: nil}
+	todoDone1 := false
+	todo := model.Todo{Id: uuid.New(), Title: "title1", Description: "description1",
+		Done: &todoDone1, CreatedAt: time.Now()}
+	dbPoolMock.EXPECT().Exec(gomock.Any(), updateQuery, todo.Id, todo.Title,
+		todo.Description, todo.Done).Return(nil, nil)
+	err := todoRepositoryImpl.Update(&todo)
+	assert.NoError(t, err)
+}
+
+func TestUpdateWhenTodoIsInvalid(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	dbPoolMock := common.NewMockDBPool(mockCtrl)
+	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
+		IDGenerator: nil, CreatedAtGenerator: nil}
+	todoDone1 := false
+	invalidTodo := model.Todo{Id: uuid.New(), Title: "", Description: "description1",
+		Done: &todoDone1, CreatedAt: time.Now()}
+	dbPoolMock.EXPECT().Exec(gomock.Any(), updateQuery, invalidTodo.Id, invalidTodo.Title,
+		invalidTodo.Description, invalidTodo.Done).Times(0)
+	err := todoRepositoryImpl.Update(&invalidTodo)
+	assert.Equal(t, ErrInvalidTodo, err)
+}
+
+func TestUpdateWhenTodoIsInvalid2(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	dbPoolMock := common.NewMockDBPool(mockCtrl)
+	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
+		IDGenerator: nil, CreatedAtGenerator: nil}
+	dbPoolMock.EXPECT().Exec(gomock.Any(), updateQuery, gomock.Any()).Times(0)
+	err := todoRepositoryImpl.Update(nil)
+	assert.Equal(t, ErrInvalidTodo, err)
 }

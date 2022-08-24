@@ -13,12 +13,14 @@ import (
 var ErrTodoRepositoryInitialization error = errors.New("DBPool is nil")
 var ErrTodoIsNil error = errors.New("this todo is nil")
 var ErrNotFound = errors.New("item is not found")
+var ErrInvalidTodo = errors.New("invalid todo")
 
 const (
 	insertTodoQuery    string = "insert into todo (id, title, description, done, createdAt) values ($1, $2, $3, $4, $5)"
 	allTodosQuery      string = "select * from todo"
 	specificTodoQuery  string = "select * from todo where id = $1"
 	allTodosOfSomeUser string = "select * from todo where user_id = $1"
+	updateQuery        string = "update todo set title = $2, description = $3, done = $4 where id = $1"
 )
 
 type TodoRepositoryImpl struct {
@@ -134,8 +136,17 @@ func (tr TodoRepositoryImpl) GetAllByUserId(id uuid.UUID) ([]model.Todo, error) 
 	return todos, nil
 }
 
+func (tr TodoRepositoryImpl) Update(todo *model.Todo) error {
+	if !model.IsValid(todo) {
+		return ErrInvalidTodo
+	}
+	if tr.DBPool == nil {
+		return ErrTodoRepositoryInitialization
+	}
+	_, err := tr.DBPool.Exec(context.Background(), updateQuery, todo.Id, todo.Title, todo.Description, todo.Done)
+	return err
+}
+
 /*
-func (tr TodoRepositoryImpl) GetAllByUserId(id uuid.UUID) ([]model.Todo, error)
-func (tr TodoRepositoryImpl) Update(todo *model.Todo) error
 func (tr TodoRepositoryImpl) Delete(id uuid.UUID) error
 */
