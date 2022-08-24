@@ -13,31 +13,42 @@ func TestIsValidWhenTodoIsNil(t *testing.T) {
 }
 
 func TestIsValidWhenTodoTitleIsEmpty(t *testing.T) {
-	todo := Todo{}
+	todoDone := false
+	todo := Todo{Description: "description", Done: &todoDone}
 	ok := IsValid(todo)
 	assert.False(t, ok)
 }
 
 func TestIsValidWhenTodoTitleIsEmpty2(t *testing.T) {
-	todo := Todo{Title: ""}
+	todoDone := false
+	todo := Todo{Title: "", Description: "description", Done: &todoDone}
 	ok := IsValid(todo)
 	assert.False(t, ok)
 }
 
 func TestIsValidWhenTodoDescriptionIsEmpty(t *testing.T) {
-	todo := Todo{}
+	todoDone := false
+	todo := Todo{Title: "title", Description: "", Done: &todoDone}
 	ok := IsValid(todo)
 	assert.False(t, ok)
 }
 
 func TestIsValidWhenTodoDescriptionIsEmpty2(t *testing.T) {
-	todo := Todo{Description: ""}
+	todoDone := false
+	todo := Todo{Title: "title", Done: &todoDone}
+	ok := IsValid(todo)
+	assert.False(t, ok)
+}
+
+func TestIsValidWhenTodoDoneIsNil(t *testing.T) {
+	todo := Todo{Title: "titlde", Description: "description", Done: nil}
 	ok := IsValid(todo)
 	assert.False(t, ok)
 }
 
 func TestIsValidWhenTodoIsValid(t *testing.T) {
-	todo := Todo{Description: "description", Title: "title"}
+	todoDone := false
+	todo := Todo{Description: "description", Title: "title", Done: &todoDone}
 	ok := IsValid(todo)
 	assert.True(t, ok)
 }
