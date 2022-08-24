@@ -11,7 +11,6 @@ import (
 )
 
 var ErrTodoRepositoryInitialization error = errors.New("DBPool is nil")
-var ErrTodoIsNil error = errors.New("this todo is nil")
 var ErrNotFound = errors.New("item is not found")
 var ErrInvalidTodo = errors.New("invalid todo")
 
@@ -30,10 +29,11 @@ type TodoRepositoryImpl struct {
 }
 
 func (tr TodoRepositoryImpl) Create(todo *model.Todo) (err error) {
+	if !model.IsValid(todo) {
+		return ErrInvalidTodo
+	}
 	if tr.DBPool == nil || tr.IDGenerator == nil || tr.CreatedAtGenerator == nil {
 		err = ErrTodoRepositoryInitialization
-	} else if todo == nil {
-		err = ErrTodoIsNil
 	} else {
 		_, err = tr.DBPool.Exec(context.Background(), insertTodoQuery, tr.IDGenerator(), todo.Title,
 			todo.Description, todo.Done, tr.CreatedAtGenerator())
