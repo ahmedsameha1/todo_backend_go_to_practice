@@ -813,7 +813,15 @@ func TestDelete(t *testing.T) {
 		assert.Equal(t, anError, err)
 	})
 	test3 := "When DBPool is nil"
-	t.Run(test3, func(t *testing.T) {})
+	t.Run(test3, func(t *testing.T) {
+		mockCtrl := gomock.NewController(t)
+		dbPoolMock := common.NewMockDBPool(mockCtrl)
+		todoRepositoryImpl := TodoRepositoryImpl{DBPool: nil,
+			IDGenerator: nil, CreatedAtGenerator: nil}
+		todoId := uuid.New()
+		dbPoolMock.EXPECT().Exec(gomock.Any(), deleteQuery, todoId).Times(0)
+		todoRepositoryImpl.Delete(todoId)
+	})
 	test4 := "When IDGenerator or CreatedAtGenerator is nil"
 	t.Run(test4, func(t *testing.T) {})
 }
