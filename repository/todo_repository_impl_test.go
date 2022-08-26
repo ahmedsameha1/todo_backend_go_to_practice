@@ -820,7 +820,8 @@ func TestDelete(t *testing.T) {
 			IDGenerator: nil, CreatedAtGenerator: nil}
 		todoId := uuid.New()
 		dbPoolMock.EXPECT().Exec(gomock.Any(), deleteQuery, todoId).Times(0)
-		todoRepositoryImpl.Delete(todoId)
+		err := todoRepositoryImpl.Delete(todoId)
+		assert.Equal(t, ErrTodoRepositoryInitialization, err)
 	})
 	test4 := "When IDGenerator or CreatedAtGenerator is nil"
 	t.Run(test4, func(t *testing.T) {})

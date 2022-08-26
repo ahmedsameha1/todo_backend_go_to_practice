@@ -150,7 +150,7 @@ func (tr TodoRepositoryImpl) Update(todo *model.Todo) error {
 
 func (tr TodoRepositoryImpl) Delete(id uuid.UUID) error {
 	if tr.DBPool == nil {
-		return nil
+		return ErrTodoRepositoryInitialization
 	}
 	_, err := tr.DBPool.Exec(context.Background(), deleteQuery, id)
 	return err
