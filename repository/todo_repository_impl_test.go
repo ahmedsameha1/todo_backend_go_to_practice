@@ -790,7 +790,6 @@ func TestUpdateWhenTodoIsInvalid2(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	test1 := "When DBPool.Exec returns no error"
 	func1 := func(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		dbPoolMock := common.NewMockDBPool(mockCtrl)
@@ -801,9 +800,8 @@ func TestDelete(t *testing.T) {
 		err := todoRepositoryImpl.Delete(todoId)
 		assert.NoError(t, err)
 	}
-	t.Run(test1, func1)
-	test2 := "When DBPool.Exec returns an error"
-	t.Run(test2, func(t *testing.T) {
+	t.Run("When DBPool.Exec returns no error", func1)
+	t.Run("When DBPool.Exec returns an error", func(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		dbPoolMock := common.NewMockDBPool(mockCtrl)
 		todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
@@ -813,8 +811,7 @@ func TestDelete(t *testing.T) {
 		err := todoRepositoryImpl.Delete(todoId)
 		assert.Equal(t, anError, err)
 	})
-	test3 := "When DBPool is nil"
-	t.Run(test3, func(t *testing.T) {
+	t.Run("When DBPool is nil", func(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		dbPoolMock := common.NewMockDBPool(mockCtrl)
 		todoRepositoryImpl := TodoRepositoryImpl{DBPool: nil,
@@ -824,6 +821,5 @@ func TestDelete(t *testing.T) {
 		err := todoRepositoryImpl.Delete(todoId)
 		assert.Equal(t, ErrTodoRepositoryInitialization, err)
 	})
-	test4 := "When IDGenerator or CreatedAtGenerator is nil: No problem"
-	t.Run(test4, func1)
+	t.Run("When IDGenerator or CreatedAtGenerator is nil: No problem", func1)
 }

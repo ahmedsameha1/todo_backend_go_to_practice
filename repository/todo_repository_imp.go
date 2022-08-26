@@ -155,7 +155,3 @@ func (tr TodoRepositoryImpl) Delete(id uuid.UUID) error {
 	_, err := tr.DBPool.Exec(context.Background(), deleteQuery, id)
 	return err
 }
-
-/*
-func (tr TodoRepositoryImpl) Delete(id uuid.UUID) error
-*/
