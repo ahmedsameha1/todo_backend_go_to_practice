@@ -147,6 +147,7 @@ func (tr TodoRepositoryImpl) Update(todo *model.Todo) error {
 	return err
 }
 
+func (tr TodoRepositoryImpl) Delete(id uuid.UUID) {}
 /*
 func (tr TodoRepositoryImpl) Delete(id uuid.UUID) error
 */
