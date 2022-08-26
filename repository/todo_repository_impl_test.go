@@ -797,6 +797,7 @@ func TestDelete(t *testing.T) {
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
 		IDGenerator: nil, CreatedAtGenerator: nil}
 	todoId := uuid.New()
+	dbPoolMock.EXPECT().Exec(gomock.Any(), deleteQuery, todoId)
 	todoRepositoryImpl.Delete(todoId)
 	})
 	test2 := "When DBPool.Exec returns an error"
