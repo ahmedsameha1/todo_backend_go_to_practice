@@ -792,13 +792,14 @@ func TestUpdateWhenTodoIsInvalid2(t *testing.T) {
 func TestDelete(t *testing.T) {
 	test1 := "When DBPool.Exec returns no error"
 	t.Run(test1, func(t *testing.T) {
-	mockCtrl := gomock.NewController(t)
-	dbPoolMock := common.NewMockDBPool(mockCtrl)
-	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
-		IDGenerator: nil, CreatedAtGenerator: nil}
-	todoId := uuid.New()
-	dbPoolMock.EXPECT().Exec(gomock.Any(), deleteQuery, todoId)
-	todoRepositoryImpl.Delete(todoId)
+		mockCtrl := gomock.NewController(t)
+		dbPoolMock := common.NewMockDBPool(mockCtrl)
+		todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
+			IDGenerator: nil, CreatedAtGenerator: nil}
+		todoId := uuid.New()
+		dbPoolMock.EXPECT().Exec(gomock.Any(), deleteQuery, todoId).Return([]byte{}, nil)
+		err := todoRepositoryImpl.Delete(todoId)
+		assert.NoError(t, err)
 	})
 	test2 := "When DBPool.Exec returns an error"
 	t.Run(test2, func(t *testing.T) {})

@@ -20,7 +20,7 @@ const (
 	specificTodoQuery  string = "select * from todo where id = $1"
 	allTodosOfSomeUser string = "select * from todo where user_id = $1"
 	updateQuery        string = "update todo set title = $2, description = $3, done = $4 where id = $1"
-	deleteQuery string = "delete from todo where id = $1"
+	deleteQuery        string = "delete from todo where id = $1"
 )
 
 type TodoRepositoryImpl struct {
@@ -148,9 +148,11 @@ func (tr TodoRepositoryImpl) Update(todo *model.Todo) error {
 	return err
 }
 
-func (tr TodoRepositoryImpl) Delete(id uuid.UUID) {
-	tr.DBPool.Exec(context.Background(), deleteQuery, id)
+func (tr TodoRepositoryImpl) Delete(id uuid.UUID) error {
+	_, err := tr.DBPool.Exec(context.Background(), deleteQuery, id)
+	return err
 }
+
 /*
 func (tr TodoRepositoryImpl) Delete(id uuid.UUID) error
 */
