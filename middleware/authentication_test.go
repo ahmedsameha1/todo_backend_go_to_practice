@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -12,6 +14,11 @@ func TestGetAuthMiddleware(t *testing.T) {
 		gin.SetMode(gin.TestMode)
 		authMiddleware := GetAuthMiddleware()
 		assert.NotNil(t, authMiddleware)
+		r := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(r)
+		req, _ := http.NewRequest("GET", "/todos", nil)
+		ctx.Request = req
+		authMiddleware(ctx)
 	})
 	t.Run(`The Authorization header doen't start with "Bearer "`, func(t *testing.T) {})
 	t.Run(`Firebase app auth client is nil`, func(t *testing.T) {})
