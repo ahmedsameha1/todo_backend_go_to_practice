@@ -19,6 +19,7 @@ func TestGetAuthMiddleware(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/todos", nil)
 		ctx.Request = req
 		authMiddleware(ctx)
+		assert.Equal(t, http.StatusUnauthorized, r.Code)
 	})
 	t.Run(`The Authorization header doen't start with "Bearer "`, func(t *testing.T) {})
 	t.Run(`Firebase app auth client is nil`, func(t *testing.T) {})
