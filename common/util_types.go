@@ -39,3 +39,7 @@ type DBRows interface {
 	Next() bool
 	Scan(dest ...interface{}) (err error)
 }
+
+type ErrorHandler interface {
+	HandleAppError(error, string, int)
+}
