@@ -20,13 +20,32 @@ func TestGetAuthMiddleware(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/todos", nil)
 		ctx.Request = req
 		errorHandlerMock := common.NewMockErrorHandler(mockCtrl)
-		errorHandlerMock.EXPECT().HandleAppError(ErrNoAuthorizationHeader ,"",http.StatusUnauthorized)
+		errorHandlerMock.EXPECT().HandleAppError(ErrNoAuthorizationHeader,
+			"", http.StatusUnauthorized)
 		authMiddleware := GetAuthMiddleware(errorHandlerMock)
 		assert.NotNil(t, authMiddleware)
 		authMiddleware(ctx)
 	})
-	t.Run(`The Authorization header doen't start with "Bearer "`, func(t *testing.T) {})
+
+	t.Run(`The Authorization header doen't start with "Bearer "`, func(t *testing.T) {
+		gin.SetMode(gin.TestMode)
+		mockCtrl := gomock.NewController(t)
+		r := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(r)
+		req, _ := http.NewRequest("GET", "/todos", nil)
+		ctx.Request = req
+		ctx.Request.Header.Add("Authorization", "etewetweew")
+		errorHandlerMock := common.NewMockErrorHandler(mockCtrl)
+		errorHandlerMock.EXPECT().HandleAppError(ErrAuthorizationHeaderDoesntStartWithBearer,
+			"", http.StatusUnauthorized)
+		authMiddleware := GetAuthMiddleware(errorHandlerMock)
+		assert.NotNil(t, authMiddleware)
+		authMiddleware(ctx)
+	})
+
 	t.Run(`Firebase app auth client is nil`, func(t *testing.T) {})
+
 	t.Run(`Client.VerifyIDToken() returns an error`, func(t *testing.T) {})
+
 	t.Run(`token has been set in gin.Context & Next() had been called`, func(t *testing.T) {})
 }
