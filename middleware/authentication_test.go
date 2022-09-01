@@ -20,9 +20,11 @@ func TestGetAuthMiddleware(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/todos", nil)
 		ctx.Request = req
 		errorHandlerMock := common.NewMockErrorHandler(mockCtrl)
+		firebaseAuthClientMock := common.NewMockAuthClient(mockCtrl)
 		errorHandlerMock.EXPECT().HandleAppError(ErrNoAuthorizationHeader,
 			"", http.StatusUnauthorized)
-		authMiddleware := GetAuthMiddleware(errorHandlerMock)
+		firebaseAuthClientMock.EXPECT().VerifyIDToken(gomock.Any(), gomock.Any()).Times(0)
+		authMiddleware := GetAuthMiddleware(firebaseAuthClientMock, errorHandlerMock)
 		assert.NotNil(t, authMiddleware)
 		authMiddleware(ctx)
 	})
@@ -36,14 +38,30 @@ func TestGetAuthMiddleware(t *testing.T) {
 		ctx.Request = req
 		ctx.Request.Header.Add("Authorization", "etewetweew")
 		errorHandlerMock := common.NewMockErrorHandler(mockCtrl)
+		firebaseAuthClientMock := common.NewMockAuthClient(mockCtrl)
 		errorHandlerMock.EXPECT().HandleAppError(ErrAuthorizationHeaderDoesntStartWithBearer,
 			"", http.StatusUnauthorized)
-		authMiddleware := GetAuthMiddleware(errorHandlerMock)
+		firebaseAuthClientMock.EXPECT().VerifyIDToken(gomock.Any(), gomock.Any()).Times(0)
+		authMiddleware := GetAuthMiddleware(firebaseAuthClientMock, errorHandlerMock)
 		assert.NotNil(t, authMiddleware)
 		authMiddleware(ctx)
 	})
 
-	t.Run(`Firebase app auth client is nil`, func(t *testing.T) {})
+	t.Run(`Firebase app auth client is nil`, func(t *testing.T) {
+		gin.SetMode(gin.TestMode)
+		mockCtrl := gomock.NewController(t)
+		r := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(r)
+		req, _ := http.NewRequest("GET", "/todos", nil)
+		ctx.Request = req
+		errorHandlerMock := common.NewMockErrorHandler(mockCtrl)
+		var firebaseAuthClient common.AuthClient = nil
+		errorHandlerMock.EXPECT().HandleAppError(ErrAuthClientIsNil,
+			"", http.StatusInternalServerError)
+		authMiddleware := GetAuthMiddleware(firebaseAuthClient, errorHandlerMock)
+		assert.NotNil(t, authMiddleware)
+		authMiddleware(ctx)
+	})
 
 	t.Run(`Client.VerifyIDToken() returns an error`, func(t *testing.T) {})
 

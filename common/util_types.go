@@ -3,6 +3,7 @@ package common
 import (
 	"context"
 
+	"firebase.google.com/go/auth"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/model"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -16,7 +17,7 @@ type Router interface {
 	DELETE(relativePath string, handlers ...gin.HandlerFunc) gin.IRoutes
 }
 
-type Logger interface{
+type Logger interface {
 	Printf(format string, v ...any)
 }
 
@@ -42,4 +43,8 @@ type DBRows interface {
 
 type ErrorHandler interface {
 	HandleAppError(error, string, int)
+}
+
+type AuthClient interface {
+	VerifyIDToken(ctx context.Context, idToken string) (*auth.Token, error)
 }
