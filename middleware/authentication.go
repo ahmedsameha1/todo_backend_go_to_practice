@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"strings"
@@ -12,6 +13,8 @@ import (
 var ErrNoAuthorizationHeader error = errors.New("there is no Authorization header in the web request")
 var ErrAuthorizationHeaderDoesntStartWithBearer error = errors.New(`the Authorization header in the web request doesn't start with "Bearer "`)
 var ErrAuthClientIsNil error = errors.New("auth client is nil")
+var ErrIdTokenVerificationFailed error = errors.New("id token verification faild")
+var ErrError error = errors.New("an error")
 
 func GetAuthMiddleware(authClient common.AuthClient, errorHandler common.ErrorHandler) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
@@ -23,6 +26,12 @@ func GetAuthMiddleware(authClient common.AuthClient, errorHandler common.ErrorHa
 				errorHandler.HandleAppError(ErrNoAuthorizationHeader, "", http.StatusUnauthorized)
 			} else if !strings.HasPrefix(authorizationHeader, "Bearer ") {
 				errorHandler.HandleAppError(ErrAuthorizationHeaderDoesntStartWithBearer, "", http.StatusUnauthorized)
+			} else {
+				token := strings.Replace(authorizationHeader, "Bearer ", "", 1)
+				_, err := authClient.VerifyIDToken(context.Background(), token)
+				if err != nil {
+					errorHandler.HandleAppError(err, "", http.StatusUnauthorized)
+				}
 			}
 		}
 	}
