@@ -69,66 +69,52 @@ func TestCreate(t *testing.T) {
 	})
 }
 
-func TestGetAllWhenTodoRepositoryReturnEmptyArray(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	mockCtrl := gomock.NewController(t)
-	todoRepositoryMock := common.NewMockTodoRepository(mockCtrl)
-	todoRepositoryMock.EXPECT().GetAll().Return([]model.Todo{}, nil)
-	getTodos := GetAll(todoRepositoryMock)
-	assert.NotNil(t, getTodos)
-	r := httptest.NewRecorder()
-	ctx, _ := gin.CreateTestContext(r)
-	req, _ := http.NewRequest("GET", "/todos", nil)
-	ctx.Request = req
-	getTodos(ctx)
-	assert.Equal(t, http.StatusOK, r.Code)
-	var got []gin.H
-	err := json.Unmarshal(r.Body.Bytes(), &got)
-	if err != nil {
-		t.Fatal(err)
-	}
+func TestGetAll(t *testing.T) {
+	t.Run("Good case: there are no todos", func(t *testing.T) {
+		mockCtrl := gomock.NewController(t)
+		ginContextMock := common.NewMockWebContext(mockCtrl)
+		todoRepositoryMock := common.NewMockTodoRepository(mockCtrl)
+		errorHandlerMock := common.NewMockErrorHandler(mockCtrl)
+		todoRepositoryMock.EXPECT().GetAll().Return([]model.Todo{}, nil)
+		ginContextMock.EXPECT().JSON(http.StatusOK, []model.Todo{})
+		getAll := GetAll(todoRepositoryMock, errorHandlerMock)
+		assert.NotNil(t, getAll)
+		getAll(ginContextMock)
+	})
+
+	t.Run("Good case: there is at least one todo", func(t *testing.T) {
+		mockCtrl := gomock.NewController(t)
+		ginContextMock := common.NewMockWebContext(mockCtrl)
+		todoRepositoryMock := common.NewMockTodoRepository(mockCtrl)
+		errorHandlerMock := common.NewMockErrorHandler(mockCtrl)
+		todo1done := false
+		todo2done := true
+		todo3done := false
+		todos := []model.Todo{{Title: "title1", Description: "description1", Done: &todo1done},
+			{Title: "title2", Description: "description2", Done: &todo2done},
+			{Title: "title3", Description: "description3", Done: &todo3done}}
+		ginContextMock.EXPECT().JSON(http.StatusOK, todos)
+		todoRepositoryMock.EXPECT().GetAll().
+			Return(todos, nil)
+		getTodos := GetAll(todoRepositoryMock, errorHandlerMock)
+		assert.NotNil(t, getTodos)
+		getTodos(ginContextMock)
+	})
+
+	t.Run("When TodoRepository returns an error", func(t *testing.T) {
+		mockCtrl := gomock.NewController(t)
+		ginContextMock := common.NewMockWebContext(mockCtrl)
+		todoRepositoryMock := common.NewMockTodoRepository(mockCtrl)
+		errorHandlerMock := common.NewMockErrorHandler(mockCtrl)
+		todoRepositoryMock.EXPECT().GetAll().
+			Return(nil, anError)
+		errorHandlerMock.EXPECT().HandleAppError(anError, "", http.StatusInternalServerError)
+		getAll := GetAll(todoRepositoryMock, errorHandlerMock)
+		assert.NotNil(t, getAll)
+		getAll(ginContextMock)
+	})
 }
 
-func TestGetAllWhenTodoRepositoryReturnNonEmptyArray(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	mockCtrl := gomock.NewController(t)
-	todoRepositoryMock := common.NewMockTodoRepository(mockCtrl)
-	todo1done := false
-	todo2done := true
-	todo3done := false
-	todos := []model.Todo{{Title: "title1", Description: "description1", Done: &todo1done},
-		{Title: "title2", Description: "description2", Done: &todo2done},
-		{Title: "title3", Description: "description3", Done: &todo3done}}
-	todoRepositoryMock.EXPECT().GetAll().
-		Return(todos, nil)
-	getTodos := GetAll(todoRepositoryMock)
-	assert.NotNil(t, getTodos)
-	r := httptest.NewRecorder()
-	ctx, _ := gin.CreateTestContext(r)
-	req, _ := http.NewRequest("GET", "/todos", nil)
-	ctx.Request = req
-	getTodos(ctx)
-	assert.Equal(t, http.StatusOK, r.Code)
-	var got []model.Todo
-	err := json.Unmarshal(r.Body.Bytes(), &got)
-	if err != nil {
-		t.Fatal(err)
-	}
-	var want []model.Todo = todos
-	assert.Equal(t, want, got)
-}
-
-func TestGetTodosWhenTodoRepositoryReturnError(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	mockCtrl := gomock.NewController(t)
-	todoRepositoryMock := common.NewMockTodoRepository(mockCtrl)
-	todoRepositoryMock.EXPECT().GetAll().
-		Return(nil, errors.New("An error"))
-	getTodos := GetAll(todoRepositoryMock)
-	assert.NotNil(t, getTodos)
-	ExpectsErrorsGetVerb(t, getTodos, "/todos", nil, http.StatusInternalServerError,
-		[]string{"An error"})
-}
 
 func TestGetById(t *testing.T) {
 	gin.SetMode(gin.TestMode)

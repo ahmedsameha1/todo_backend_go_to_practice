@@ -20,7 +20,7 @@ func TestSetTodoRoutes(t *testing.T) {
 	routerMock.EXPECT().POST("/todos", gomock.Any()).Do(func(path string, handler gin.HandlerFunc) {
 		assert.Equal(t, reflect.ValueOf(create).Pointer(), reflect.ValueOf(handler).Pointer())
 	})
-	getAll := controllers.GetAll(todoRepositoryMock)
+	getAll := controllers.GetAll(todoRepositoryMock, errorHandlerMock)
 	routerMock.EXPECT().GET("/todos", gomock.Any()).Do(func(path string, handler gin.HandlerFunc) {
 		assert.Equal(t, reflect.ValueOf(getAll).Pointer(), reflect.ValueOf(handler).Pointer())
 	})

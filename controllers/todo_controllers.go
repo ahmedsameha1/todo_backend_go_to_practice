@@ -52,10 +52,10 @@ func Update(todoRepository common.TodoRepository) gin.HandlerFunc {
 	}
 }
 
-func GetAll(todoRepository common.TodoRepository) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
+func GetAll(todoRepository common.TodoRepository, errorHandler common.ErrorHandler) func(common.WebContext) {
+	return func(ctx common.WebContext) {
 		if todos, err := todoRepository.GetAll(); err != nil {
-			common.SendBackAnAppError(ctx, logger, err, "", http.StatusInternalServerError)
+			errorHandler.HandleAppError(err, "", http.StatusInternalServerError)
 		} else {
 			ctx.JSON(http.StatusOK, todos)
 		}
