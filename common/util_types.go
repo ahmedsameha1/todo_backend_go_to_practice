@@ -11,7 +11,7 @@ import (
 )
 
 type Router interface {
-	POST(relativePath string, handlers ...gin.HandlerFunc) gin.IRoutes
+	POST(relativePath string, handlers ...func(WebContext)) gin.IRoutes
 	PUT(relativePath string, handlers ...gin.HandlerFunc) gin.IRoutes
 	GET(relativePath string, handlers ...gin.HandlerFunc) gin.IRoutes
 	DELETE(relativePath string, handlers ...gin.HandlerFunc) gin.IRoutes
@@ -47,4 +47,9 @@ type ErrorHandler interface {
 
 type AuthClient interface {
 	VerifyIDToken(ctx context.Context, idToken string) (*auth.Token, error)
+}
+
+type WebContext interface {
+	JSON(code int, obj any)
+	ShouldBindJSON(obj any) error
 }

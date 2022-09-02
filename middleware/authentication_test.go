@@ -105,5 +105,6 @@ func TestGetAuthMiddleware(t *testing.T) {
 		token, ok := ctx.Get(AuthToken)
 		assert.True(t, ok)
 		assert.Equal(t, tokeN, token)
+		// TODO test calling gin.Context.Next()
 	})
 }

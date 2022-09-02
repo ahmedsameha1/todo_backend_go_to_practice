@@ -10,27 +10,19 @@ import (
 	"github.com/google/uuid"
 )
 
-/*
-type TodoResource struct {
-	Title       string `json:"title" binding:"required"`
-	Description string `json:"description" binding:"required"`
-	Done        *bool  `json:"done" binding:"required"`
-}
-*/
-
 var logger *log.Logger = log.Default()
 
-func Create(todoRepository common.TodoRepository) func(*gin.Context) {
-	return func(ctx *gin.Context) {
+func Create(todoRepository common.TodoRepository, errorHandler common.ErrorHandler) func(common.WebContext) {
+	return func(ctx common.WebContext) {
 		var json model.Todo
 		if err := ctx.ShouldBindJSON(&json); err != nil {
-			common.SendBackAnAppError(ctx, logger, err,
+			errorHandler.HandleAppError(err,
 				"", http.StatusBadRequest)
 			return
 		}
 		err := todoRepository.Create(&json)
 		if err != nil {
-			common.SendBackAnAppError(ctx, logger, err,
+			errorHandler.HandleAppError(err,
 				"", http.StatusInternalServerError)
 		} else {
 			ctx.JSON(http.StatusOK, json)

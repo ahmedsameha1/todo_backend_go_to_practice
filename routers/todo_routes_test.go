@@ -15,7 +15,8 @@ func TestSetTodoRoutes(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	routerMock := common.NewMockRouter(mockCtrl)
 	todoRepositoryMock := common.NewMockTodoRepository(mockCtrl)
-	create := controllers.Create(todoRepositoryMock)
+	errorHandlerMock := common.NewMockErrorHandler(mockCtrl)
+	create := controllers.Create(todoRepositoryMock, errorHandlerMock)
 	routerMock.EXPECT().POST("/todos", gomock.Any()).Do(func(path string, handler gin.HandlerFunc) {
 		assert.Equal(t, reflect.ValueOf(create).Pointer(), reflect.ValueOf(handler).Pointer())
 	})
@@ -39,5 +40,5 @@ func TestSetTodoRoutes(t *testing.T) {
 	routerMock.EXPECT().DELETE("/todos/{id}", gomock.Any()).Do(func(path string, handler gin.HandlerFunc) {
 		assert.Equal(t, reflect.ValueOf(delete).Pointer(), reflect.ValueOf(handler).Pointer())
 	})
-	SetTodoRoutes(routerMock, todoRepositoryMock)
+	SetTodoRoutes(routerMock, todoRepositoryMock, errorHandlerMock)
 }
