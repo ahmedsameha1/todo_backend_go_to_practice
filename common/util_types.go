@@ -52,4 +52,5 @@ type AuthClient interface {
 type WebContext interface {
 	JSON(code int, obj any)
 	ShouldBindJSON(obj any) error
+	Param(key string) string
 }

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"log"
 	"net/http"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
+var ErrParseIsNil error = errors.New("parse is nil")
 var logger *log.Logger = log.Default()
 
 func Create(todoRepository common.TodoRepository, errorHandler common.ErrorHandler) func(common.WebContext) {
@@ -62,18 +64,23 @@ func GetAll(todoRepository common.TodoRepository, errorHandler common.ErrorHandl
 	}
 }
 
-func GetById(todoRepository common.TodoRepository) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		id, err := uuid.Parse(ctx.Param("id"))
-		if err != nil {
-			common.SendBackAnAppError(ctx, logger, err, "", http.StatusBadRequest)
-		} else {
-			todo, err := todoRepository.GetById(id)
+func GetById(todoRepository common.TodoRepository, errorHandler common.ErrorHandler,
+	parse func(string) (uuid.UUID, error)) func(common.WebContext) {
+	return func(ctx common.WebContext) {
+		if parse != nil {
+			id, err := parse(ctx.Param("id"))
 			if err != nil {
-				common.SendBackAnAppError(ctx, logger, err, "", http.StatusInternalServerError)
+				errorHandler.HandleAppError(err, "", http.StatusBadRequest)
 			} else {
-				ctx.JSON(http.StatusOK, todo)
+				todo, err := todoRepository.GetById(id)
+				if err != nil {
+					errorHandler.HandleAppError(err, "", http.StatusInternalServerError)
+				} else {
+					ctx.JSON(http.StatusOK, todo)
+				}
 			}
+		} else {
+			errorHandler.HandleAppError(ErrParseIsNil, "", http.StatusInternalServerError)
 		}
 	}
 }

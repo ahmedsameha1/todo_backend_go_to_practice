@@ -45,6 +45,20 @@ func (mr *MockWebContextMockRecorder) JSON(arg0, arg1 interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSON", reflect.TypeOf((*MockWebContext)(nil).JSON), arg0, arg1)
 }
 
+// Param mocks base method.
+func (m *MockWebContext) Param(arg0 string) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Param", arg0)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// Param indicates an expected call of Param.
+func (mr *MockWebContextMockRecorder) Param(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Param", reflect.TypeOf((*MockWebContext)(nil).Param), arg0)
+}
+
 // ShouldBindJSON mocks base method.
 func (m *MockWebContext) ShouldBindJSON(arg0 interface{}) error {
 	m.ctrl.T.Helper()

@@ -115,52 +115,57 @@ func TestGetAll(t *testing.T) {
 	})
 }
 
-
 func TestGetById(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	todoRepositoryMock := createTodoRepositoryMock(t)
-	done := false
-	todoId := uuid.New()
-	todo := model.Todo{Title: "title1", Description: "description1", Done: &done, Id: todoId}
-	todoRepositoryMock.EXPECT().GetById(todoId).Return(&todo, nil)
-	getTodoById := GetById(todoRepositoryMock)
-	assert.NotNil(t, getTodoById)
-	r := httptest.NewRecorder()
-	urlf := "/todos/"
-	req, _ := http.NewRequest("GET", urlf, nil)
-	ctx, _ := gin.CreateTestContext(r)
-	ctx.Request = req
-	ctx.Params = []gin.Param{{Key: "id", Value: todoId.String()}}
-	getTodoById(ctx)
-	assert.Equal(t, http.StatusOK, r.Code)
-	var got model.Todo
-	err := json.Unmarshal(r.Body.Bytes(), &got)
-	if err != nil {
-		t.Fatal(err)
-	}
-	assert.Equal(t, todo, got)
-}
+	t.Run("Good case", func(t *testing.T) {
+		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
+		todoId := uuid.New()
+		uUidParseMock := func(id string) (uuid.UUID, error) {
+			return todoId, nil
+		}
+		done := false
+		todo := model.Todo{Title: "title1", Description: "description1", Done: &done, Id: todoId}
+		todoRepositoryMock.EXPECT().GetById(todoId).Return(&todo, nil)
+		ginContextMock.EXPECT().Param("id").Return(todoId.String())
+		ginContextMock.EXPECT().JSON(http.StatusOK, &todo)
+		getById := GetById(todoRepositoryMock, errorHandlerMock, uUidParseMock)
+		assert.NotNil(t, getById)
+		getById(ginContextMock)
+	})
 
-func TestGetByIdWhenInvalidIdIsSent(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	todoRepositoryMock := createTodoRepositoryMock(t)
-	todoRepositoryMock.EXPECT().GetById(gomock.Any()).Times(0)
-	getTodoById := GetById(todoRepositoryMock)
-	assert.NotNil(t, getTodoById)
-	ExpectsErrorsGetVerb(t, getTodoById, "/todos/",
-		[]gin.Param{{Key: "id", Value: "71ca04c4-2d88-4bc0-a5a3-47446098905n"}},
-		http.StatusBadRequest, []string{"UUID"})
-}
+	t.Run("When invalid id is sent as a path parameter in the url", func(t *testing.T) {
+		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
+		uUidParseMock := func(id string) (uuid.UUID, error) {
+			return uuid.Nil, anError
+		}
+		todoRepositoryMock.EXPECT().GetById(gomock.Any()).Times(0)
+		ginContextMock.EXPECT().Param("id")
+		errorHandlerMock.EXPECT().HandleAppError(anError, "", http.StatusBadRequest)
+		getById := GetById(todoRepositoryMock, errorHandlerMock, uUidParseMock)
+		assert.NotNil(t, getById)
+		getById(ginContextMock)
+	})
 
-func TestGetByIdWhenTodoRepositoryReturnError(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	todoRepositoryMock := createTodoRepositoryMock(t)
-	todoRepositoryMock.EXPECT().GetById(gomock.Any()).Return(nil, errors.New("An error"))
-	getTodoById := GetById(todoRepositoryMock)
-	assert.NotNil(t, getTodoById)
-	ExpectsErrorsGetVerb(t, getTodoById, "/todos/",
-		[]gin.Param{{Key: "id", Value: "71ca04c4-2d88-4bc0-a5a3-474460989058"}},
-		http.StatusInternalServerError, []string{})
+	t.Run("When TodoRepository returns an Error", func(t *testing.T) {
+		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
+		todoId := uuid.New()
+		uUidParseMock := func(id string) (uuid.UUID, error) {
+			return todoId, nil
+		}
+		todoRepositoryMock.EXPECT().GetById(gomock.Any()).Return(nil, anError)
+		ginContextMock.EXPECT().Param("id")
+		errorHandlerMock.EXPECT().HandleAppError(anError, "", http.StatusInternalServerError)
+		getById := GetById(todoRepositoryMock, errorHandlerMock, uUidParseMock)
+		assert.NotNil(t, getById)
+		getById(ginContextMock)
+	})
+
+	t.Run("When parse is nil", func(t *testing.T) {
+		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
+		errorHandlerMock.EXPECT().HandleAppError(ErrParseIsNil, "", http.StatusInternalServerError)
+		getById := GetById(todoRepositoryMock, errorHandlerMock, nil)
+		assert.NotNil(t, getById)
+		getById(ginContextMock)
+	})
 }
 
 func TestGetAllByUserId(t *testing.T) {
@@ -378,6 +383,12 @@ func createTodoRepositoryMock(t *testing.T) *common.MockTodoRepository {
 	t.Helper()
 	mockCtrl := gomock.NewController(t)
 	return common.NewMockTodoRepository(mockCtrl)
+}
+
+func createMocks(t *testing.T) (*common.MockTodoRepository, *common.MockWebContext, *common.MockErrorHandler) {
+	t.Helper()
+	mockCtrl := gomock.NewController(t)
+	return common.NewMockTodoRepository(mockCtrl), common.NewMockWebContext(mockCtrl), common.NewMockErrorHandler(mockCtrl)
 }
 
 func ExpectsErrorsGetVerb(t *testing.T, handler gin.HandlerFunc, path string, params []gin.Param, code int, errorContained []string) {

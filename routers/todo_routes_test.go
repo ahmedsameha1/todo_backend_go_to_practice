@@ -8,6 +8,7 @@ import (
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/controllers"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,7 +25,7 @@ func TestSetTodoRoutes(t *testing.T) {
 	routerMock.EXPECT().GET("/todos", gomock.Any()).Do(func(path string, handler gin.HandlerFunc) {
 		assert.Equal(t, reflect.ValueOf(getAll).Pointer(), reflect.ValueOf(handler).Pointer())
 	})
-	getById := controllers.GetById(todoRepositoryMock)
+	getById := controllers.GetById(todoRepositoryMock, errorHandlerMock, uuid.Parse)
 	routerMock.EXPECT().GET("/todos/{id}", gomock.Any()).Do(func(path string, handler gin.HandlerFunc) {
 		assert.Equal(t, reflect.ValueOf(getById).Pointer(), reflect.ValueOf(handler).Pointer())
 	})
