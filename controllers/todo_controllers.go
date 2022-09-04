@@ -32,24 +32,29 @@ func Create(todoRepository common.TodoRepository, errorHandler common.ErrorHandl
 	}
 }
 
-func Update(todoRepository common.TodoRepository) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		_, err := uuid.Parse(ctx.Param("id"))
-		if err != nil {
-			common.SendBackAnAppError(ctx, logger, err, "", http.StatusBadRequest)
-		} else {
-			var todo model.Todo
-			err := ctx.ShouldBindJSON(&todo)
+func Update(todoRepository common.TodoRepository, errorHandler common.ErrorHandler,
+	parse func(string) (uuid.UUID, error)) func(common.WebContext) {
+	return func(ctx common.WebContext) {
+		if parse != nil {
+			_, err := parse(ctx.Param("id"))
 			if err != nil {
-				common.SendBackAnAppError(ctx, logger, err, "", http.StatusBadRequest)
+				errorHandler.HandleAppError(err, "", http.StatusBadRequest)
 			} else {
-				err := todoRepository.Update(&todo)
+				var todo model.Todo
+				err := ctx.ShouldBindJSON(&todo)
 				if err != nil {
-					common.SendBackAnAppError(ctx, logger, err, "", http.StatusInternalServerError)
+					errorHandler.HandleAppError(err, "", http.StatusBadRequest)
 				} else {
-					ctx.JSON(http.StatusNoContent, gin.H{})
+					err := todoRepository.Update(&todo)
+					if err != nil {
+						errorHandler.HandleAppError(err, "", http.StatusInternalServerError)
+					} else {
+						ctx.JSON(http.StatusNoContent, gin.H{})
+					}
 				}
 			}
+		} else {
+			errorHandler.HandleAppError(ErrParseIsNil, "", http.StatusInternalServerError)
 		}
 	}
 }

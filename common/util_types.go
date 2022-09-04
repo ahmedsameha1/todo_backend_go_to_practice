@@ -12,7 +12,7 @@ import (
 
 type Router interface {
 	POST(relativePath string, handlers ...func(WebContext)) gin.IRoutes
-	PUT(relativePath string, handlers ...gin.HandlerFunc) gin.IRoutes
+	PUT(relativePath string, handlers ...func(WebContext)) gin.IRoutes
 	GET(relativePath string, handlers ...func(WebContext)) gin.IRoutes
 	DELETE(relativePath string, handlers ...gin.HandlerFunc) gin.IRoutes
 }
