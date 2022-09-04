@@ -111,18 +111,23 @@ func GetAllByUserId(todoRepository common.TodoRepository, errorHandler common.Er
 	}
 }
 
-func Delete(todoRepository common.TodoRepository) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		id, err := uuid.Parse(ctx.Param("id"))
-		if err != nil {
-			common.SendBackAnAppError(ctx, logger, err, "", http.StatusBadRequest)
-		} else {
-			err := todoRepository.Delete(id)
+func Delete(todoRepository common.TodoRepository, errorHandler common.ErrorHandler,
+	parse func(string) (uuid.UUID, error)) func(common.WebContext) {
+	return func(ctx common.WebContext) {
+		if parse != nil {
+			id, err := parse(ctx.Param("id"))
 			if err != nil {
-				common.SendBackAnAppError(ctx, logger, err, "", http.StatusInternalServerError)
+				errorHandler.HandleAppError(err, "", http.StatusBadRequest)
 			} else {
-				ctx.JSON(http.StatusNoContent, gin.H{})
+				err := todoRepository.Delete(id)
+				if err != nil {
+					errorHandler.HandleAppError(err, "", http.StatusInternalServerError)
+				} else {
+					ctx.JSON(http.StatusNoContent, gin.H{})
+				}
 			}
+		} else {
+			errorHandler.HandleAppError(ErrParseIsNil, "", http.StatusInternalServerError)
 		}
 	}
 }

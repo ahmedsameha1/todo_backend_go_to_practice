@@ -1,10 +1,8 @@
 package controllers
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/common"
@@ -15,8 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var anErrString string = "An error"
-var anError error = errors.New(anErrString)
+var anError error = errors.New("An error")
 
 func TestCreate(t *testing.T) {
 	t.Run("Good case", func(t *testing.T) {
@@ -302,94 +299,57 @@ func TestUpdate(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	todoRepositoryMock := createTodoRepositoryMock(t)
-	todoId := uuid.New()
-	todoRepositoryMock.EXPECT().Delete(todoId).Return(nil)
-	delete := Delete(todoRepositoryMock)
-	assert.NotNil(t, delete)
-	r := httptest.NewRecorder()
-	ctx, _ := gin.CreateTestContext(r)
-	req, _ := http.NewRequest("DELETE", "/todos/", nil)
-	ctx.Request = req
-	ctx.Params = []gin.Param{{Key: "id", Value: todoId.String()}}
-	delete(ctx)
-	assert.Equal(t, http.StatusNoContent, r.Code)
-	assert.Len(t, r.Body.Bytes(), 0)
-}
+	t.Run("Good case", func(t *testing.T) {
+		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
+		todoId := uuid.New()
+		uUidParseMock := func(id string) (uuid.UUID, error) {
+			return todoId, nil
+		}
+		todoRepositoryMock.EXPECT().Delete(todoId).Return(nil)
+		ginContextMock.EXPECT().Param("id").Return(todoId.String())
+		ginContextMock.EXPECT().JSON(http.StatusNoContent, map[string]any{})
+		delete := Delete(todoRepositoryMock, errorHandlerMock, uUidParseMock)
+		assert.NotNil(t, delete)
+		delete(ginContextMock)
+	})
 
-func TestDeleteWhenInvalidIdIsSent(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	todoRepositoryMock := createTodoRepositoryMock(t)
-	todoRepositoryMock.EXPECT().Delete(gomock.Any()).Times(0)
-	delete := Delete(todoRepositoryMock)
-	assert.NotNil(t, delete)
-	r := httptest.NewRecorder()
-	ctx, _ := gin.CreateTestContext(r)
-	req, _ := http.NewRequest("DELETE", "/todos/", nil)
-	ctx.Request = req
-	ctx.Params = []gin.Param{{Key: "id", Value: "71ca04c4-2d88-4bc0-a5a3-47446098905n"}}
-	delete(ctx)
-	assert.Equal(t, http.StatusBadRequest, r.Code)
-	var got gin.H
-	err := json.Unmarshal(r.Body.Bytes(), &got)
-	if err != nil {
-		t.Fatal(err)
-	}
-	assert.Contains(t, got["error"], "UUID")
-}
+	t.Run("When invalid todo id is sent as a path parameter in the url", func(t *testing.T) {
+		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
+		uUidParseMock := func(id string) (uuid.UUID, error) {
+			return uuid.Nil, anError
+		}
+		todoRepositoryMock.EXPECT().Delete(gomock.Any()).Times(0)
+		ginContextMock.EXPECT().Param("id")
+		errorHandlerMock.EXPECT().HandleAppError(anError, "", http.StatusBadRequest)
+		delete := Delete(todoRepositoryMock, errorHandlerMock, uUidParseMock)
+		assert.NotNil(t, delete)
+		delete(ginContextMock)
+	})
 
-func TestDeleteWhenTodoRepositoryReturnAnError(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	todoRepositoryMock := createTodoRepositoryMock(t)
-	todoId := uuid.New()
-	todoRepositoryMock.EXPECT().Delete(todoId).Return(anError)
-	delete := Delete(todoRepositoryMock)
-	assert.NotNil(t, delete)
-	r := httptest.NewRecorder()
-	ctx, _ := gin.CreateTestContext(r)
-	req, _ := http.NewRequest("DELETE", "/todos/", nil)
-	ctx.Request = req
-	ctx.Params = []gin.Param{{Key: "id", Value: todoId.String()}}
-	delete(ctx)
-	assert.Equal(t, http.StatusInternalServerError, r.Code)
-	var got gin.H
-	err := json.Unmarshal(r.Body.Bytes(), &got)
-	if err != nil {
-		t.Fatal(err)
-	}
-	assert.Contains(t, got["error"], anErrString)
-}
+	t.Run("When TodoRepository return an error", func(t *testing.T) {
+		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
+		todoId := uuid.New()
+		uUidParseMock := func(id string) (uuid.UUID, error) {
+			return todoId, nil
+		}
+		todoRepositoryMock.EXPECT().Delete(todoId).Return(anError)
+		ginContextMock.EXPECT().Param("id").Return(todoId.String())
+		errorHandlerMock.EXPECT().HandleAppError(anError, "", http.StatusInternalServerError)
+		delete := Delete(todoRepositoryMock, errorHandlerMock, uUidParseMock)
+		assert.NotNil(t, delete)
+		delete(ginContextMock)
+	})
 
-func createTodoRepositoryMock(t *testing.T) *common.MockTodoRepository {
-	t.Helper()
-	mockCtrl := gomock.NewController(t)
-	return common.NewMockTodoRepository(mockCtrl)
+	t.Run("When parse is nil", func(t *testing.T) {
+		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
+		errorHandlerMock.EXPECT().HandleAppError(ErrParseIsNil, "", http.StatusInternalServerError)
+		delete := Delete(todoRepositoryMock, errorHandlerMock, nil)
+		delete(ginContextMock)
+	})
 }
 
 func createMocks(t *testing.T) (*common.MockTodoRepository, *common.MockWebContext, *common.MockErrorHandler) {
 	t.Helper()
 	mockCtrl := gomock.NewController(t)
 	return common.NewMockTodoRepository(mockCtrl), common.NewMockWebContext(mockCtrl), common.NewMockErrorHandler(mockCtrl)
-}
-
-func ExpectsErrorsGetVerb(t *testing.T, handler gin.HandlerFunc, path string, params []gin.Param, code int, errorContained []string) {
-	t.Helper()
-	r := httptest.NewRecorder()
-	ctx, _ := gin.CreateTestContext(r)
-	req, _ := http.NewRequest("GET", path, nil)
-	ctx.Request = req
-	if params != nil {
-		ctx.Params = params
-	}
-	handler(ctx)
-	assert.Equal(t, code, r.Code)
-	var got gin.H
-	err := json.Unmarshal(r.Body.Bytes(), &got)
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, value := range errorContained {
-		assert.Contains(t, got["error"], value)
-	}
 }

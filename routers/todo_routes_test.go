@@ -6,7 +6,6 @@ import (
 
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/common"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/controllers"
-	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -37,8 +36,8 @@ func TestSetTodoRoutes(t *testing.T) {
 	routerMock.EXPECT().PUT("/todos/:id", gomock.Any()).Do(func(path string, handler func(common.WebContext)) {
 		assert.Equal(t, reflect.ValueOf(update).Pointer(), reflect.ValueOf(handler).Pointer())
 	})
-	delete := controllers.Delete(todoRepositoryMock)
-	routerMock.EXPECT().DELETE("/todos/:id", gomock.Any()).Do(func(path string, handler gin.HandlerFunc) {
+	delete := controllers.Delete(todoRepositoryMock, errorHandlerMock, uuid.Parse)
+	routerMock.EXPECT().DELETE("/todos/:id", gomock.Any()).Do(func(path string, handler func(common.WebContext)) {
 		assert.Equal(t, reflect.ValueOf(delete).Pointer(), reflect.ValueOf(handler).Pointer())
 	})
 	SetTodoRoutes(routerMock, todoRepositoryMock, errorHandlerMock)
