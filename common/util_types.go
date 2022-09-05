@@ -53,4 +53,7 @@ type WebContext interface {
 	JSON(code int, obj any)
 	ShouldBindJSON(obj any) error
 	Param(key string) string
+	GetHeader(key string) string
+	Set(key string, value any)
+	Next()
 }

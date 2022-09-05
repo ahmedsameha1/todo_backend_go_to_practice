@@ -33,6 +33,20 @@ func (m *MockWebContext) EXPECT() *MockWebContextMockRecorder {
 	return m.recorder
 }
 
+// GetHeader mocks base method.
+func (m *MockWebContext) GetHeader(arg0 string) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetHeader", arg0)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// GetHeader indicates an expected call of GetHeader.
+func (mr *MockWebContextMockRecorder) GetHeader(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHeader", reflect.TypeOf((*MockWebContext)(nil).GetHeader), arg0)
+}
+
 // JSON mocks base method.
 func (m *MockWebContext) JSON(arg0 int, arg1 interface{}) {
 	m.ctrl.T.Helper()
@@ -43,6 +57,18 @@ func (m *MockWebContext) JSON(arg0 int, arg1 interface{}) {
 func (mr *MockWebContextMockRecorder) JSON(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSON", reflect.TypeOf((*MockWebContext)(nil).JSON), arg0, arg1)
+}
+
+// Next mocks base method.
+func (m *MockWebContext) Next() {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "Next")
+}
+
+// Next indicates an expected call of Next.
+func (mr *MockWebContextMockRecorder) Next() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Next", reflect.TypeOf((*MockWebContext)(nil).Next))
 }
 
 // Param mocks base method.
@@ -57,6 +83,18 @@ func (m *MockWebContext) Param(arg0 string) string {
 func (mr *MockWebContextMockRecorder) Param(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Param", reflect.TypeOf((*MockWebContext)(nil).Param), arg0)
+}
+
+// Set mocks base method.
+func (m *MockWebContext) Set(arg0 string, arg1 interface{}) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "Set", arg0, arg1)
+}
+
+// Set indicates an expected call of Set.
+func (mr *MockWebContextMockRecorder) Set(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockWebContext)(nil).Set), arg0, arg1)
 }
 
 // ShouldBindJSON mocks base method.
