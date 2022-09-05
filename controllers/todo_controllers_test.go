@@ -51,7 +51,6 @@ func TestCreate(t *testing.T) {
 		createTodo(ginContextMock)
 	})
 
-	//TODO make id is required to not be the ZERO UUID
 	t.Run("When required fields are not present in the web request body", func(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		ginContextMock := common.NewMockWebContext(mockCtrl)

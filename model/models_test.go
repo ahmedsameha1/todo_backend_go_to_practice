@@ -1,6 +1,7 @@
 package model
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/google/uuid"
@@ -58,6 +59,17 @@ func TestIsValid(t *testing.T) {
 	t.Run("When there is no id", func(t *testing.T) {
 		todoDone := false
 		todo := Todo{Description: "description", Title: "title", Done: &todoDone}
+		assert.False(t, IsValid(todo))
+	})
+
+	t.Run("When there is id which is in invalid format", func(t *testing.T) {
+		todoDone := false
+		todo := Todo{Id: uuid.New().String() + "1", Description: "description", Title: "title", Done: &todoDone}
+		assert.False(t, IsValid(todo))
+		todo = Todo{Id: strings.ReplaceAll(uuid.New().String(), "-", ""), Description: "description", Title: "title", Done: &todoDone}
+		assert.False(t, IsValid(todo))
+		uUid := uuid.New()
+		todo = Todo{Id: uUid.String()[:0] + "u" + uUid.String()[1:], Description: "description", Title: "title", Done: &todoDone}
 		assert.False(t, IsValid(todo))
 	})
 }
