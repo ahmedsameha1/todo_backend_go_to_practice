@@ -49,7 +49,7 @@ func TestIsValidWhenTodoDoneIsNil(t *testing.T) {
 
 func TestIsValidWhenTodoIsValid(t *testing.T) {
 	todoDone := false
-	todo := Todo{Id: uuid.New(), Description: "description", Title: "title", Done: &todoDone}
+	todo := Todo{Id: uuid.New().String(), Description: "description", Title: "title", Done: &todoDone}
 	ok := IsValid(todo)
 	assert.True(t, ok)
 }

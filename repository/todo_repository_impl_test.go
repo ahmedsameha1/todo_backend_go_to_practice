@@ -29,7 +29,7 @@ func TestCreate(t *testing.T) {
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock, IDGenerator: idGeneratorMock,
 		CreatedAtGenerator: createdAtGeneratorMock}
 	todoDone := false
-	todo := model.Todo{Title: "title1", Description: "description1", Done: &todoDone}
+	todo := model.Todo{Id: uuid.New().String(), Title: "title1", Description: "description1", Done: &todoDone}
 	dbPoolMock.EXPECT().Exec(gomock.Any(), insertTodoQuery, idGeneratorMock(),
 		todo.Title, todo.Description, todo.Done, createdAtGeneratorMock()).Return(nil, nil)
 	err := todoRepositoryImpl.Create(&todo)
@@ -50,7 +50,7 @@ func TestCreateWhenDBPoolReturnAnError(t *testing.T) {
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock, IDGenerator: idGeneratorMock,
 		CreatedAtGenerator: createdAtGeneratorMock}
 	todoDone := false
-	todo := model.Todo{Title: "title1", Description: "description1", Done: &todoDone}
+	todo := model.Todo{Id: uuid.New().String(), Title: "title1", Description: "description1", Done: &todoDone}
 	dbPoolMock.EXPECT().Exec(gomock.Any(), insertTodoQuery, idGeneratorMock(),
 		todo.Title, todo.Description, todo.Done, createdAtGeneratorMock()).Return(nil, anError)
 	err := todoRepositoryImpl.Create(&todo)
@@ -71,7 +71,7 @@ func TestCreateWhenCreatingTodoRepositoryWithNilDBPool(t *testing.T) {
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: nil, IDGenerator: idGeneratorMock,
 		CreatedAtGenerator: createdAtGeneratorMock}
 	todoDone := false
-	todo := model.Todo{Title: "title1", Description: "description1", Done: &todoDone}
+	todo := model.Todo{Id: uuid.New().String(), Title: "title1", Description: "description1", Done: &todoDone}
 	dbPoolMock.EXPECT().Exec(gomock.Any(), gomock.Any()).Times(0)
 	err := todoRepositoryImpl.Create(&todo)
 	assert.Equal(t, err, ErrTodoRepositoryInitialization)
@@ -87,7 +87,7 @@ func TestCreateWhenCreatingTodoRepositoryWithNilIDGenerator(t *testing.T) {
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock, IDGenerator: nil,
 		CreatedAtGenerator: createdAtGeneratorMock}
 	todoDone := false
-	todo := model.Todo{Title: "title1", Description: "description1", Done: &todoDone}
+	todo := model.Todo{Id: uuid.New().String(), Title: "title1", Description: "description1", Done: &todoDone}
 	dbPoolMock.EXPECT().Exec(gomock.Any(), gomock.Any(), gomock.Any()).Times(0)
 	err := todoRepositoryImpl.Create(&todo)
 	assert.Equal(t, err, ErrTodoRepositoryInitialization)
@@ -103,7 +103,7 @@ func TestCreateWhenCreatingTodoRepositoryWithNilCreatedAtGenerator(t *testing.T)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock, IDGenerator: idGeneratorMock,
 		CreatedAtGenerator: nil}
 	todoDone := false
-	todo := model.Todo{Title: "title1", Description: "description1", Done: &todoDone}
+	todo := model.Todo{Id: uuid.New().String(), Title: "title1", Description: "description1", Done: &todoDone}
 	dbPoolMock.EXPECT().Exec(gomock.Any(), gomock.Any(), gomock.Any()).Times(0)
 	err := todoRepositoryImpl.Create(&todo)
 	assert.Equal(t, err, ErrTodoRepositoryInitialization)
@@ -167,9 +167,9 @@ func TestGetAll(t *testing.T) {
 	todoDone2 := true
 	todoDone3 := false
 	wantedTodos := []model.Todo{
-		{Id: uuid.New(), Title: "title1", Description: "description1", Done: &todoDone1, CreatedAt: time.Now()},
-		{Id: uuid.New(), Title: "title2", Description: "description2", Done: &todoDone2, CreatedAt: time.Now()},
-		{Id: uuid.New(), Title: "title3", Description: "description3", Done: &todoDone3, CreatedAt: time.Now()},
+		{Id: uuid.New().String(), Title: "title1", Description: "description1", Done: &todoDone1, CreatedAt: time.Now()},
+		{Id: uuid.New().String(), Title: "title2", Description: "description2", Done: &todoDone2, CreatedAt: time.Now()},
+		{Id: uuid.New().String(), Title: "title3", Description: "description3", Done: &todoDone3, CreatedAt: time.Now()},
 	}
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
 		IDGenerator: idGeneratorMock, CreatedAtGenerator: createdAtGeneratorMock}
@@ -241,9 +241,9 @@ func TestGetAllWhenAScanCallReturnAnError(t *testing.T) {
 	todoDone2 := true
 	todoDone3 := false
 	wantedTodos := []model.Todo{
-		{Id: uuid.New(), Title: "title1", Description: "description1", Done: &todoDone1, CreatedAt: time.Now()},
-		{Id: uuid.New(), Title: "title2", Description: "description2", Done: &todoDone2, CreatedAt: time.Now()},
-		{Id: uuid.New(), Title: "title3", Description: "description3", Done: &todoDone3, CreatedAt: time.Now()},
+		{Id: uuid.New().String(), Title: "title1", Description: "description1", Done: &todoDone1, CreatedAt: time.Now()},
+		{Id: uuid.New().String(), Title: "title2", Description: "description2", Done: &todoDone2, CreatedAt: time.Now()},
+		{Id: uuid.New().String(), Title: "title3", Description: "description3", Done: &todoDone3, CreatedAt: time.Now()},
 	}
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
 		IDGenerator: idGeneratorMock, CreatedAtGenerator: createdAtGeneratorMock}
@@ -274,9 +274,9 @@ func TestGetAllWhenAScanCallReturnAnError2(t *testing.T) {
 	todoDone2 := true
 	todoDone3 := false
 	wantedTodos := []model.Todo{
-		{Id: uuid.New(), Title: "title1", Description: "description1", Done: &todoDone1, CreatedAt: time.Now()},
-		{Id: uuid.New(), Title: "title2", Description: "description2", Done: &todoDone2, CreatedAt: time.Now()},
-		{Id: uuid.New(), Title: "title3", Description: "description3", Done: &todoDone3, CreatedAt: time.Now()},
+		{Id: uuid.New().String(), Title: "title1", Description: "description1", Done: &todoDone1, CreatedAt: time.Now()},
+		{Id: uuid.New().String(), Title: "title2", Description: "description2", Done: &todoDone2, CreatedAt: time.Now()},
+		{Id: uuid.New().String(), Title: "title3", Description: "description3", Done: &todoDone3, CreatedAt: time.Now()},
 	}
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
 		IDGenerator: idGeneratorMock, CreatedAtGenerator: createdAtGeneratorMock}
@@ -322,9 +322,9 @@ func TestGetAllWhenErrCallReturnAnError(t *testing.T) {
 	todoDone2 := true
 	todoDone3 := false
 	wantedTodos := []model.Todo{
-		{Id: uuid.New(), Title: "title1", Description: "description1", Done: &todoDone1, CreatedAt: time.Now()},
-		{Id: uuid.New(), Title: "title2", Description: "description2", Done: &todoDone2, CreatedAt: time.Now()},
-		{Id: uuid.New(), Title: "title3", Description: "description3", Done: &todoDone3, CreatedAt: time.Now()},
+		{Id: uuid.New().String(), Title: "title1", Description: "description1", Done: &todoDone1, CreatedAt: time.Now()},
+		{Id: uuid.New().String(), Title: "title2", Description: "description2", Done: &todoDone2, CreatedAt: time.Now()},
+		{Id: uuid.New().String(), Title: "title3", Description: "description3", Done: &todoDone3, CreatedAt: time.Now()},
 	}
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
 		IDGenerator: idGeneratorMock, CreatedAtGenerator: createdAtGeneratorMock}
@@ -395,7 +395,7 @@ func TestGetById(t *testing.T) {
 		IDGenerator: nil, CreatedAtGenerator: nil}
 	todoId := uuid.New()
 	todoDone := false
-	wantedTodo := model.Todo{Id: todoId, Title: "title1",
+	wantedTodo := model.Todo{Id: todoId.String(), Title: "title1",
 		Description: "description1", Done: &todoDone, CreatedAt: time.Now()}
 	gomock.InOrder(
 		dbPoolMock.EXPECT().Query(gomock.Any(), specificTodoQuery, todoId).Return(dbRowsMock, nil),
@@ -437,7 +437,7 @@ func TestGetByIdWhenScanReturnAnError(t *testing.T) {
 		IDGenerator: nil, CreatedAtGenerator: nil}
 	todoId := uuid.New()
 	todoDone := false
-	wantedTodo := model.Todo{Id: todoId, Title: "title1",
+	wantedTodo := model.Todo{Id: todoId.String(), Title: "title1",
 		Description: "description1", Done: &todoDone, CreatedAt: time.Now()}
 	gomock.InOrder(
 		dbPoolMock.EXPECT().Query(gomock.Any(), specificTodoQuery, todoId).Return(dbRowsMock, nil),
@@ -459,7 +459,7 @@ func TestGetByIdWhenScanReturnAnError2(t *testing.T) {
 		IDGenerator: nil, CreatedAtGenerator: nil}
 	todoId := uuid.New()
 	todoDone := false
-	wantedTodo := model.Todo{Id: todoId, Title: "title1",
+	wantedTodo := model.Todo{Id: todoId.String(), Title: "title1",
 		Description: "description1", Done: &todoDone, CreatedAt: time.Now()}
 	gomock.InOrder(
 		dbPoolMock.EXPECT().Query(gomock.Any(), specificTodoQuery, todoId).Return(dbRowsMock, nil),
@@ -536,9 +536,9 @@ func TestGetAllByUserId(t *testing.T) {
 	todoDone2 := true
 	todoDone3 := false
 	wantedTodos := []model.Todo{
-		{Id: uuid.New(), Title: "title1", Description: "description1", Done: &todoDone1, CreatedAt: time.Now()},
-		{Id: uuid.New(), Title: "title2", Description: "description2", Done: &todoDone2, CreatedAt: time.Now()},
-		{Id: uuid.New(), Title: "title3", Description: "description3", Done: &todoDone3, CreatedAt: time.Now()},
+		{Id: uuid.New().String(), Title: "title1", Description: "description1", Done: &todoDone1, CreatedAt: time.Now()},
+		{Id: uuid.New().String(), Title: "title2", Description: "description2", Done: &todoDone2, CreatedAt: time.Now()},
+		{Id: uuid.New().String(), Title: "title3", Description: "description3", Done: &todoDone3, CreatedAt: time.Now()},
 	}
 	gomock.InOrder(
 		dbPoolMock.EXPECT().Query(gomock.Any(), allTodosOfSomeUser, userId).Return(dbRowsMock, nil),
@@ -612,9 +612,9 @@ func TestGetAllByUserIdWhenScanReturnAnError(t *testing.T) {
 	todoDone2 := true
 	todoDone3 := false
 	wantedTodos := []model.Todo{
-		{Id: uuid.New(), Title: "title1", Description: "description1", Done: &todoDone1, CreatedAt: time.Now()},
-		{Id: uuid.New(), Title: "title2", Description: "description2", Done: &todoDone2, CreatedAt: time.Now()},
-		{Id: uuid.New(), Title: "title3", Description: "description3", Done: &todoDone3, CreatedAt: time.Now()},
+		{Id: uuid.New().String(), Title: "title1", Description: "description1", Done: &todoDone1, CreatedAt: time.Now()},
+		{Id: uuid.New().String(), Title: "title2", Description: "description2", Done: &todoDone2, CreatedAt: time.Now()},
+		{Id: uuid.New().String(), Title: "title3", Description: "description3", Done: &todoDone3, CreatedAt: time.Now()},
 	}
 	gomock.InOrder(
 		dbPoolMock.EXPECT().Query(gomock.Any(), allTodosOfSomeUser, userId).Return(dbRowsMock, nil),
@@ -639,9 +639,9 @@ func TestGetAllByUserIdWhenScanReturnAnError2(t *testing.T) {
 	todoDone2 := true
 	todoDone3 := false
 	wantedTodos := []model.Todo{
-		{Id: uuid.New(), Title: "title1", Description: "description1", Done: &todoDone1, CreatedAt: time.Now()},
-		{Id: uuid.New(), Title: "title2", Description: "description2", Done: &todoDone2, CreatedAt: time.Now()},
-		{Id: uuid.New(), Title: "title3", Description: "description3", Done: &todoDone3, CreatedAt: time.Now()},
+		{Id: uuid.New().String(), Title: "title1", Description: "description1", Done: &todoDone1, CreatedAt: time.Now()},
+		{Id: uuid.New().String(), Title: "title2", Description: "description2", Done: &todoDone2, CreatedAt: time.Now()},
+		{Id: uuid.New().String(), Title: "title3", Description: "description3", Done: &todoDone3, CreatedAt: time.Now()},
 	}
 	gomock.InOrder(
 		dbPoolMock.EXPECT().Query(gomock.Any(), allTodosOfSomeUser, userId).Return(dbRowsMock, nil),
@@ -711,7 +711,7 @@ func TestUpdate(t *testing.T) {
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
 		IDGenerator: nil, CreatedAtGenerator: nil}
 	todoDone1 := false
-	todo := model.Todo{Id: uuid.New(), Title: "title1", Description: "description1",
+	todo := model.Todo{Id: uuid.New().String(), Title: "title1", Description: "description1",
 		Done: &todoDone1, CreatedAt: time.Now()}
 	dbPoolMock.EXPECT().Exec(gomock.Any(), updateQuery, todo.Id, todo.Title,
 		todo.Description, todo.Done).Return(nil, nil)
@@ -725,7 +725,7 @@ func TestUpdateWhenDBPoolReturnAnError(t *testing.T) {
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
 		IDGenerator: nil, CreatedAtGenerator: nil}
 	todoDone1 := false
-	todo := model.Todo{Id: uuid.New(), Title: "title1", Description: "description1",
+	todo := model.Todo{Id: uuid.New().String(), Title: "title1", Description: "description1",
 		Done: &todoDone1, CreatedAt: time.Now()}
 	dbPoolMock.EXPECT().Exec(gomock.Any(), updateQuery, todo.Id, todo.Title,
 		todo.Description, todo.Done).Return(nil, anError)
@@ -739,7 +739,7 @@ func TestUpdateWhenDBoolIsNil(t *testing.T) {
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: nil,
 		IDGenerator: nil, CreatedAtGenerator: nil}
 	todoDone1 := false
-	todo := model.Todo{Id: uuid.New(), Title: "title1", Description: "description1",
+	todo := model.Todo{Id: uuid.New().String(), Title: "title1", Description: "description1",
 		Done: &todoDone1, CreatedAt: time.Now()}
 	dbPoolMock.EXPECT().Exec(gomock.Any(), updateQuery, todo.Id, todo.Title,
 		todo.Description, todo.Done).Times(0)
@@ -753,7 +753,7 @@ func TestUpdateWhenIDGeneratorOrCreatedAtGeneratorIsNil(t *testing.T) {
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
 		IDGenerator: nil, CreatedAtGenerator: nil}
 	todoDone1 := false
-	todo := model.Todo{Id: uuid.New(), Title: "title1", Description: "description1",
+	todo := model.Todo{Id: uuid.New().String(), Title: "title1", Description: "description1",
 		Done: &todoDone1, CreatedAt: time.Now()}
 	dbPoolMock.EXPECT().Exec(gomock.Any(), updateQuery, todo.Id, todo.Title,
 		todo.Description, todo.Done).Return(nil, nil)
@@ -767,7 +767,7 @@ func TestUpdateWhenTodoIsInvalid(t *testing.T) {
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
 		IDGenerator: nil, CreatedAtGenerator: nil}
 	todoDone1 := false
-	invalidTodo := model.Todo{Id: uuid.New(), Title: "", Description: "description1",
+	invalidTodo := model.Todo{Id: uuid.New().String(), Title: "", Description: "description1",
 		Done: &todoDone1, CreatedAt: time.Now()}
 	dbPoolMock.EXPECT().Exec(gomock.Any(), updateQuery, invalidTodo.Id, invalidTodo.Title,
 		invalidTodo.Description, invalidTodo.Done).Times(0)
@@ -781,7 +781,7 @@ func TestUpdateWhenTodoIsInvalid2(t *testing.T) {
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
 		IDGenerator: nil, CreatedAtGenerator: nil}
 	todoDone1 := false
-	invalidTodo := model.Todo{Id: uuid.New(), Title: "", Description: "description1",
+	invalidTodo := model.Todo{Id: uuid.New().String(), Title: "", Description: "description1",
 		Done: &todoDone1, CreatedAt: time.Now()}
 	dbPoolMock.EXPECT().Exec(gomock.Any(), updateQuery, invalidTodo.Id, invalidTodo.Title,
 		invalidTodo.Description, invalidTodo.Done).Times(0)

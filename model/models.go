@@ -4,14 +4,13 @@ import (
 	"time"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/google/uuid"
 )
 
 var validatorr *validator.Validate = validator.New()
 
 type Todo struct {
 	//TODO make id is required to not be the ZERO UUID
-	Id          uuid.UUID `json:"id" bindging:"required" validate:"required"`
+	Id          string `json:"id" bindging:"required" validate:"required"`
 	Title       string    `json:"title" binding:"required" validate:"required"`
 	Description string    `json:"description" binding:"required" validate:"required"`
 	Done        *bool     `json:"done" binding:"required" validate:"required"`
