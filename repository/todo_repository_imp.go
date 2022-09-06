@@ -50,7 +50,7 @@ func (tr TodoRepositoryImpl) GetAll() ([]model.Todo, error) {
 
 	todos := []model.Todo{}
 	for rows.Next() {
-		todo := model.Todo{}
+		var todo model.Todo
 		if err := rows.Scan(&todo.Id); err != nil {
 			return nil, err
 		}
@@ -82,7 +82,7 @@ func (tr TodoRepositoryImpl) GetById(id uuid.UUID) (*model.Todo, error) {
 	if err := rows.Err(); err != nil {
 		return nil, err
 	} else {
-		todo := model.Todo{}
+		var todo model.Todo
 		if rows.Next() {
 			if err := rows.Scan(&todo.Id); err != nil {
 				return nil, err
@@ -116,7 +116,7 @@ func (tr TodoRepositoryImpl) GetAllByUserId(id uuid.UUID) ([]model.Todo, error) 
 	}
 	todos := []model.Todo{}
 	for rows.Next() {
-		todo := model.Todo{}
+		var todo model.Todo
 		if err := rows.Scan(&todo.Id); err != nil {
 			return nil, err
 		}

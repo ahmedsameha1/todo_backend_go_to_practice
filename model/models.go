@@ -16,7 +16,6 @@ type Todo struct {
 	CreatedAt   time.Time `json:"createdAt"`
 }
 
-//TODO Review the created Todos which doesn't have Id field
 func IsValid(obj interface{}) (ok bool) {
 	if obj == nil {
 		return false

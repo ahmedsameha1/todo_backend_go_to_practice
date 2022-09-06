@@ -23,7 +23,7 @@ func TestCreate(t *testing.T) {
 		todoRepositoryMock := common.NewMockTodoRepository(mockCtrl)
 		errorHandlerMock := common.NewMockErrorHandler(mockCtrl)
 		done := false
-		todo := model.Todo{Title: "title1",
+		todo := model.Todo{Id: uuid.New().String(), Title: "title1",
 			Description: "description1",
 			Done:        &done}
 		ginContextMock.EXPECT().ShouldBindJSON(gomock.Any()).SetArg(0, todo)
@@ -40,7 +40,7 @@ func TestCreate(t *testing.T) {
 		todoRepositoryMock := common.NewMockTodoRepository(mockCtrl)
 		errorHandlerMock := common.NewMockErrorHandler(mockCtrl)
 		done := false
-		todo := model.Todo{Title: "title1",
+		todo := model.Todo{Id: uuid.New().String(), Title: "title1",
 			Description: "description1",
 			Done:        &done}
 		ginContextMock.EXPECT().ShouldBindJSON(gomock.Any()).SetArg(0, todo)
@@ -86,9 +86,9 @@ func TestGetAll(t *testing.T) {
 		todo1done := false
 		todo2done := true
 		todo3done := false
-		todos := []model.Todo{{Title: "title1", Description: "description1", Done: &todo1done},
-			{Title: "title2", Description: "description2", Done: &todo2done},
-			{Title: "title3", Description: "description3", Done: &todo3done}}
+		todos := []model.Todo{{Id: uuid.New().String(), Title: "title1", Description: "description1", Done: &todo1done},
+			{Id: uuid.New().String(), Title: "title2", Description: "description2", Done: &todo2done},
+			{Id: uuid.New().String(), Title: "title3", Description: "description3", Done: &todo3done}}
 		ginContextMock.EXPECT().JSON(http.StatusOK, todos)
 		todoRepositoryMock.EXPECT().GetAll().
 			Return(todos, nil)
@@ -176,9 +176,9 @@ func TestGetAllByUserId(t *testing.T) {
 		todo1done := false
 		todo2done := true
 		todo3done := false
-		todos := []model.Todo{{Title: "title1", Description: "description1", Done: &todo1done},
-			{Title: "title2", Description: "description2", Done: &todo2done},
-			{Title: "title3", Description: "description3", Done: &todo3done}}
+		todos := []model.Todo{{Id: uuid.New().String(), Title: "title1", Description: "description1", Done: &todo1done},
+			{Id: uuid.New().String(), Title: "title2", Description: "description2", Done: &todo2done},
+			{Id: uuid.New().String(), Title: "title3", Description: "description3", Done: &todo3done}}
 		todoRepositoryMock.EXPECT().GetAllByUserId(userId).Return(todos, nil)
 		ginContextMock.EXPECT().Param("id").Return(userId.String())
 		ginContextMock.EXPECT().JSON(http.StatusOK, todos)
@@ -231,7 +231,7 @@ func TestUpdate(t *testing.T) {
 		update := Update(todoRepositoryMock, errorHandlerMock, uUidParseMock)
 		assert.NotNil(t, update)
 		done := false
-		todo := model.Todo{Title: "title1",
+		todo := model.Todo{Id: uuid.New().String(), Title: "title1",
 			Description: "description1",
 			Done:        &done}
 		todoRepositoryMock.EXPECT().Update(&todo).Return(nil)
@@ -279,7 +279,7 @@ func TestUpdate(t *testing.T) {
 		update := Update(todoRepositoryMock, errorHandlerMock, uUidParseMock)
 		assert.NotNil(t, update)
 		done := false
-		todo := model.Todo{Title: "title1",
+		todo := model.Todo{Id: uuid.New().String(), Title: "title1",
 			Description: "description1",
 			Done:        &done}
 		todoRepositoryMock.EXPECT().Update(&todo).Return(anError)
