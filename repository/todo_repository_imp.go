@@ -15,7 +15,7 @@ var ErrNotFound = errors.New("item is not found")
 var ErrInvalidTodo = errors.New("invalid todo")
 
 const (
-	insertTodoQuery    string = "insert into todo (id, title, description, done, createdAt) values ($1, $2, $3, $4, $5)"
+	insertTodoQuery    string = "insert into todo (id, title, description, done, createdAt) values ($1::UUID, $2, $3, $4, $5)"
 	allTodosQuery      string = "select * from todo"
 	specificTodoQuery  string = "select * from todo where id = $1"
 	allTodosOfSomeUser string = "select * from todo where user_id = $1"
