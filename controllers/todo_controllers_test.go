@@ -224,47 +224,23 @@ func TestGetAllByUserId(t *testing.T) {
 func TestUpdate(t *testing.T) {
 	t.Run("Good case", func(t *testing.T) {
 		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
-		todoId := uuid.New()
-		uUidParseMock := func(id string) (uuid.UUID, error) {
-			return todoId, nil
-		}
-		update := Update(todoRepositoryMock, errorHandlerMock, uUidParseMock)
+		update := Update(todoRepositoryMock, errorHandlerMock)
 		assert.NotNil(t, update)
 		done := false
 		todo := model.Todo{Id: uuid.New().String(), Title: "title1",
 			Description: "description1",
 			Done:        &done}
 		todoRepositoryMock.EXPECT().Update(&todo).Return(nil)
-		ginContextMock.EXPECT().Param("id").Return(todoId.String())
 		ginContextMock.EXPECT().ShouldBindJSON(gomock.Any()).SetArg(0, todo)
 		ginContextMock.EXPECT().JSON(http.StatusNoContent, map[string]any{})
 		update(ginContextMock)
 	})
 
-	//TODO Should not id path parameter for todo. The id should be in the request
-	t.Run("When invalid todo id is sent as a path parameter in the url", func(t *testing.T) {
-		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
-		uUidParseMock := func(id string) (uuid.UUID, error) {
-			return uuid.Nil, anError
-		}
-		update := Update(todoRepositoryMock, errorHandlerMock, uUidParseMock)
-		assert.NotNil(t, update)
-		todoRepositoryMock.EXPECT().Update(gomock.Any()).Times(0)
-		ginContextMock.EXPECT().Param("id")
-		errorHandlerMock.EXPECT().HandleAppError(anError, "", http.StatusBadRequest)
-		update(ginContextMock)
-	})
-
 	t.Run("When required fields are not present in the web request body", func(t *testing.T) {
 		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
-		todoId := uuid.New()
-		uUidParseMock := func(id string) (uuid.UUID, error) {
-			return todoId, nil
-		}
-		update := Update(todoRepositoryMock, errorHandlerMock, uUidParseMock)
+		update := Update(todoRepositoryMock, errorHandlerMock)
 		assert.NotNil(t, update)
 		todoRepositoryMock.EXPECT().Update(gomock.Any()).Times(0)
-		ginContextMock.EXPECT().Param("id").Return(todoId.String())
 		ginContextMock.EXPECT().ShouldBindJSON(gomock.Any()).Return(anError)
 		errorHandlerMock.EXPECT().HandleAppError(anError, "", http.StatusBadRequest)
 		update(ginContextMock)
@@ -272,11 +248,7 @@ func TestUpdate(t *testing.T) {
 
 	t.Run("When TodoRepository returns an error", func(t *testing.T) {
 		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
-		todoId := uuid.New()
-		uUidParseMock := func(id string) (uuid.UUID, error) {
-			return todoId, nil
-		}
-		update := Update(todoRepositoryMock, errorHandlerMock, uUidParseMock)
+		update := Update(todoRepositoryMock, errorHandlerMock)
 		assert.NotNil(t, update)
 		done := false
 		todo := model.Todo{Id: uuid.New().String(), Title: "title1",
@@ -284,15 +256,7 @@ func TestUpdate(t *testing.T) {
 			Done:        &done}
 		todoRepositoryMock.EXPECT().Update(&todo).Return(anError)
 		ginContextMock.EXPECT().ShouldBindJSON(gomock.Any()).SetArg(0, todo)
-		ginContextMock.EXPECT().Param("id").Return(todoId.String())
 		errorHandlerMock.EXPECT().HandleAppError(anError, "", http.StatusInternalServerError)
-		update(ginContextMock)
-	})
-
-	t.Run("When parse is nil", func(t *testing.T) {
-		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
-		update := Update(todoRepositoryMock, errorHandlerMock, nil)
-		errorHandlerMock.EXPECT().HandleAppError(ErrParseIsNil, "", http.StatusInternalServerError)
 		update(ginContextMock)
 	})
 }
