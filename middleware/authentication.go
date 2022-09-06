@@ -17,7 +17,6 @@ var ErrNoAuthorizationHeader error = errors.New("there is no Authorization heade
 var ErrAuthorizationHeaderDoesntStartWithBearer error = errors.New(`the Authorization header in the web request doesn't start with "Bearer "`)
 var ErrAuthClientIsNil error = errors.New("auth client is nil")
 var ErrIdTokenVerificationFailed error = errors.New("id token verification faild")
-var ErrError error = errors.New("an error")
 
 func GetAuthMiddleware(authClient common.AuthClient, errorHandler common.ErrorHandler) func(common.WebContext) {
 	return func(ctx common.WebContext) {

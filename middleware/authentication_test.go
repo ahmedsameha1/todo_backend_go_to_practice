@@ -46,11 +46,11 @@ func TestGetAuthMiddleware(t *testing.T) {
 		firebaseAuthClientMock, ginContextMock, errorHandlerMock := CreateMocks(t)
 		ha := "eyJhbGciOiJ"
 		ginContextMock.EXPECT().GetHeader(AUTHORIZATION).Return(BEARER + ha)
-		errorHandlerMock.EXPECT().HandleAppError(ErrError,
+		errorHandlerMock.EXPECT().HandleAppError(common.ErrError,
 			"", http.StatusUnauthorized)
 		firebaseAuthClientMock.EXPECT().VerifyIDToken(gomock.Any(),
 			ha).
-			Return(nil, ErrError)
+			Return(nil, common.ErrError)
 		authMiddleware := GetAuthMiddleware(firebaseAuthClientMock, errorHandlerMock)
 		assert.NotNil(t, authMiddleware)
 		authMiddleware(ginContextMock)

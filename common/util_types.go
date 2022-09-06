@@ -2,6 +2,7 @@ package common
 
 import (
 	"context"
+	"errors"
 
 	"firebase.google.com/go/auth"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/model"
@@ -9,6 +10,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgconn"
 )
+
+var ErrError error = errors.New("an error")
 
 type Router interface {
 	POST(relativePath string, handlers ...func(WebContext)) gin.IRoutes
