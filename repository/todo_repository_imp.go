@@ -25,7 +25,6 @@ const (
 
 type TodoRepositoryImpl struct {
 	DBPool             common.DBPool
-	IDGenerator        func() uuid.UUID
 	CreatedAtGenerator func() time.Time
 }
 
@@ -33,10 +32,10 @@ func (tr TodoRepositoryImpl) Create(todo *model.Todo) (err error) {
 	if !model.IsValid(todo) {
 		return ErrInvalidTodo
 	}
-	if tr.DBPool == nil || tr.IDGenerator == nil || tr.CreatedAtGenerator == nil {
+	if tr.DBPool == nil || tr.CreatedAtGenerator == nil {
 		err = ErrTodoRepositoryInitialization
 	} else {
-		_, err = tr.DBPool.Exec(context.Background(), insertTodoQuery, tr.IDGenerator(), todo.Title,
+		_, err = tr.DBPool.Exec(context.Background(), insertTodoQuery, todo.Id, todo.Title,
 			todo.Description, todo.Done, tr.CreatedAtGenerator())
 	}
 	return err

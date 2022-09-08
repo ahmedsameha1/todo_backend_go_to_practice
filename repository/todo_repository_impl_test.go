@@ -14,19 +14,15 @@ import (
 func TestCreate(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
-	id := uuid.New()
 	now := time.Now()
-	idGeneratorMock := func() uuid.UUID {
-		return id
-	}
 	createdAtGeneratorMock := func() time.Time {
 		return now
 	}
-	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock, IDGenerator: idGeneratorMock,
+	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
 		CreatedAtGenerator: createdAtGeneratorMock}
 	todoDone := false
 	todo := model.Todo{Id: uuid.New().String(), Title: "title1", Description: "description1", Done: &todoDone}
-	dbPoolMock.EXPECT().Exec(gomock.Any(), insertTodoQuery, idGeneratorMock(),
+	dbPoolMock.EXPECT().Exec(gomock.Any(), insertTodoQuery, todo.Id,
 		todo.Title, todo.Description, todo.Done, createdAtGeneratorMock()).Return(nil, nil)
 	err := todoRepositoryImpl.Create(&todo)
 	assert.NoError(t, err)
@@ -35,19 +31,15 @@ func TestCreate(t *testing.T) {
 func TestCreateWhenDBPoolReturnAnError(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
-	id := uuid.New()
 	now := time.Now()
-	idGeneratorMock := func() uuid.UUID {
-		return id
-	}
 	createdAtGeneratorMock := func() time.Time {
 		return now
 	}
-	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock, IDGenerator: idGeneratorMock,
+	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock, 
 		CreatedAtGenerator: createdAtGeneratorMock}
 	todoDone := false
 	todo := model.Todo{Id: uuid.New().String(), Title: "title1", Description: "description1", Done: &todoDone}
-	dbPoolMock.EXPECT().Exec(gomock.Any(), insertTodoQuery, idGeneratorMock(),
+	dbPoolMock.EXPECT().Exec(gomock.Any(), insertTodoQuery, todo.Id,
 		todo.Title, todo.Description, todo.Done, createdAtGeneratorMock()).Return(nil, common.ErrError)
 	err := todoRepositoryImpl.Create(&todo)
 	assert.Error(t, err)
@@ -56,15 +48,11 @@ func TestCreateWhenDBPoolReturnAnError(t *testing.T) {
 func TestCreateWhenCreatingTodoRepositoryWithNilDBPool(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
-	id := uuid.New()
 	now := time.Now()
-	idGeneratorMock := func() uuid.UUID {
-		return id
-	}
 	createdAtGeneratorMock := func() time.Time {
 		return now
 	}
-	todoRepositoryImpl := TodoRepositoryImpl{DBPool: nil, IDGenerator: idGeneratorMock,
+	todoRepositoryImpl := TodoRepositoryImpl{DBPool: nil, 
 		CreatedAtGenerator: createdAtGeneratorMock}
 	todoDone := false
 	todo := model.Todo{Id: uuid.New().String(), Title: "title1", Description: "description1", Done: &todoDone}
@@ -73,30 +61,10 @@ func TestCreateWhenCreatingTodoRepositoryWithNilDBPool(t *testing.T) {
 	assert.Equal(t, err, ErrTodoRepositoryInitialization)
 }
 
-func TestCreateWhenCreatingTodoRepositoryWithNilIDGenerator(t *testing.T) {
-	mockCtrl := gomock.NewController(t)
-	dbPoolMock := common.NewMockDBPool(mockCtrl)
-	now := time.Now()
-	createdAtGeneratorMock := func() time.Time {
-		return now
-	}
-	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock, IDGenerator: nil,
-		CreatedAtGenerator: createdAtGeneratorMock}
-	todoDone := false
-	todo := model.Todo{Id: uuid.New().String(), Title: "title1", Description: "description1", Done: &todoDone}
-	dbPoolMock.EXPECT().Exec(gomock.Any(), gomock.Any(), gomock.Any()).Times(0)
-	err := todoRepositoryImpl.Create(&todo)
-	assert.Equal(t, err, ErrTodoRepositoryInitialization)
-}
-
 func TestCreateWhenCreatingTodoRepositoryWithNilCreatedAtGenerator(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
-	id := uuid.New()
-	idGeneratorMock := func() uuid.UUID {
-		return id
-	}
-	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock, IDGenerator: idGeneratorMock,
+	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
 		CreatedAtGenerator: nil}
 	todoDone := false
 	todo := model.Todo{Id: uuid.New().String(), Title: "title1", Description: "description1", Done: &todoDone}
@@ -108,19 +76,15 @@ func TestCreateWhenCreatingTodoRepositoryWithNilCreatedAtGenerator(t *testing.T)
 func TestCreateWhenTodoIsInvalid(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
-	id := uuid.New()
 	now := time.Now()
-	idGeneratorMock := func() uuid.UUID {
-		return id
-	}
 	createdAtGeneratorMock := func() time.Time {
 		return now
 	}
-	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock, IDGenerator: idGeneratorMock,
+	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
 		CreatedAtGenerator: createdAtGeneratorMock}
 	todoDone := false
 	invalidTodo := model.Todo{Title: "title1", Done: &todoDone}
-	dbPoolMock.EXPECT().Exec(gomock.Any(), insertTodoQuery, idGeneratorMock(),
+	dbPoolMock.EXPECT().Exec(gomock.Any(), insertTodoQuery, invalidTodo.Id,
 		invalidTodo.Title, invalidTodo.Description, invalidTodo.Done, createdAtGeneratorMock()).Times(0)
 	err := todoRepositoryImpl.Create(&invalidTodo)
 	assert.Equal(t, ErrInvalidTodo, err)
@@ -129,19 +93,15 @@ func TestCreateWhenTodoIsInvalid(t *testing.T) {
 func TestCreateWhenTodoIsInvalid2(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
-	id := uuid.New()
 	now := time.Now()
-	idGeneratorMock := func() uuid.UUID {
-		return id
-	}
 	createdAtGeneratorMock := func() time.Time {
 		return now
 	}
-	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock, IDGenerator: idGeneratorMock,
+	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock, 
 		CreatedAtGenerator: createdAtGeneratorMock}
 	todoDone := false
 	invalidTodo := model.Todo{Title: "title1", Done: &todoDone}
-	dbPoolMock.EXPECT().Exec(gomock.Any(), insertTodoQuery, idGeneratorMock(),
+	dbPoolMock.EXPECT().Exec(gomock.Any(), insertTodoQuery, invalidTodo.Id,
 		invalidTodo.Title, invalidTodo.Description, invalidTodo.Done, createdAtGeneratorMock()).Times(0)
 	err := todoRepositoryImpl.Create(nil)
 	assert.Equal(t, ErrInvalidTodo, err)
@@ -151,11 +111,7 @@ func TestGetAll(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
-	id := uuid.New()
 	now := time.Now()
-	idGeneratorMock := func() uuid.UUID {
-		return id
-	}
 	createdAtGeneratorMock := func() time.Time {
 		return now
 	}
@@ -168,7 +124,7 @@ func TestGetAll(t *testing.T) {
 		{Id: uuid.New().String(), Title: "title3", Description: "description3", Done: &todoDone3, CreatedAt: time.Now()},
 	}
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
-		IDGenerator: idGeneratorMock, CreatedAtGenerator: createdAtGeneratorMock}
+		 CreatedAtGenerator: createdAtGeneratorMock}
 	gomock.InOrder(
 		dbPoolMock.EXPECT().Query(gomock.Any(), allTodosQuery).Return(dbRowsMock, nil),
 		dbRowsMock.EXPECT().Next().Return(true),
@@ -201,16 +157,12 @@ func TestGetAll2(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
-	id := uuid.New()
 	now := time.Now()
-	idGeneratorMock := func() uuid.UUID {
-		return id
-	}
 	createdAtGeneratorMock := func() time.Time {
 		return now
 	}
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
-		IDGenerator: idGeneratorMock, CreatedAtGenerator: createdAtGeneratorMock}
+		 CreatedAtGenerator: createdAtGeneratorMock}
 	gomock.InOrder(
 		dbPoolMock.EXPECT().Query(gomock.Any(), allTodosQuery).Return(dbRowsMock, nil),
 		dbRowsMock.EXPECT().Next().Return(false),
@@ -225,11 +177,7 @@ func TestGetAllWhenAScanCallReturnAnError(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
-	id := uuid.New()
 	now := time.Now()
-	idGeneratorMock := func() uuid.UUID {
-		return id
-	}
 	createdAtGeneratorMock := func() time.Time {
 		return now
 	}
@@ -242,7 +190,7 @@ func TestGetAllWhenAScanCallReturnAnError(t *testing.T) {
 		{Id: uuid.New().String(), Title: "title3", Description: "description3", Done: &todoDone3, CreatedAt: time.Now()},
 	}
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
-		IDGenerator: idGeneratorMock, CreatedAtGenerator: createdAtGeneratorMock}
+		 CreatedAtGenerator: createdAtGeneratorMock}
 	gomock.InOrder(
 		dbPoolMock.EXPECT().Query(gomock.Any(), allTodosQuery).Return(dbRowsMock, nil),
 		dbRowsMock.EXPECT().Next().Return(true),
@@ -258,11 +206,7 @@ func TestGetAllWhenAScanCallReturnAnError2(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
-	id := uuid.New()
 	now := time.Now()
-	idGeneratorMock := func() uuid.UUID {
-		return id
-	}
 	createdAtGeneratorMock := func() time.Time {
 		return now
 	}
@@ -275,7 +219,7 @@ func TestGetAllWhenAScanCallReturnAnError2(t *testing.T) {
 		{Id: uuid.New().String(), Title: "title3", Description: "description3", Done: &todoDone3, CreatedAt: time.Now()},
 	}
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
-		IDGenerator: idGeneratorMock, CreatedAtGenerator: createdAtGeneratorMock}
+		 CreatedAtGenerator: createdAtGeneratorMock}
 	gomock.InOrder(
 		dbPoolMock.EXPECT().Query(gomock.Any(), allTodosQuery).Return(dbRowsMock, nil),
 		dbRowsMock.EXPECT().Next().Return(true),
@@ -306,11 +250,7 @@ func TestGetAllWhenErrCallReturnAnError(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
-	id := uuid.New()
 	now := time.Now()
-	idGeneratorMock := func() uuid.UUID {
-		return id
-	}
 	createdAtGeneratorMock := func() time.Time {
 		return now
 	}
@@ -323,7 +263,7 @@ func TestGetAllWhenErrCallReturnAnError(t *testing.T) {
 		{Id: uuid.New().String(), Title: "title3", Description: "description3", Done: &todoDone3, CreatedAt: time.Now()},
 	}
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
-		IDGenerator: idGeneratorMock, CreatedAtGenerator: createdAtGeneratorMock}
+		 CreatedAtGenerator: createdAtGeneratorMock}
 	gomock.InOrder(
 		dbPoolMock.EXPECT().Query(gomock.Any(), allTodosQuery).Return(dbRowsMock, common.ErrError),
 		dbRowsMock.EXPECT().Next().Return(true),
@@ -352,12 +292,12 @@ func TestGetAllWhenErrCallReturnAnError(t *testing.T) {
 	assert.Error(t, err, common.ErrError)
 }
 
-func TestGetAllWhenIDGeneratorOrCreatedAtGeneratorIsNil(t *testing.T) {
+func TestGetAllWhenCreatedAtGeneratorIsNil(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
-		IDGenerator: nil, CreatedAtGenerator: nil}
+		 CreatedAtGenerator: nil}
 	gomock.InOrder(
 		dbPoolMock.EXPECT().Query(gomock.Any(), allTodosQuery).Return(dbRowsMock, nil),
 		dbRowsMock.EXPECT().Next().Return(false),
@@ -373,7 +313,7 @@ func TestGetAllWhenDBPoolIsNil(t *testing.T) {
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: nil,
-		IDGenerator: nil, CreatedAtGenerator: nil}
+		 CreatedAtGenerator: nil}
 	dbPoolMock.EXPECT().Query(gomock.Any(), gomock.Any()).Times(0)
 	dbRowsMock.EXPECT().Next().Times(0)
 	dbRowsMock.EXPECT().Scan(gomock.Any()).Times(0)
@@ -388,7 +328,7 @@ func TestGetById(t *testing.T) {
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
-		IDGenerator: nil, CreatedAtGenerator: nil}
+		 CreatedAtGenerator: nil}
 	todoId := uuid.New()
 	todoDone := false
 	wantedTodo := model.Todo{Id: todoId.String(), Title: "title1",
@@ -413,7 +353,7 @@ func TestGetByIdWhenNotFound(t *testing.T) {
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
-		IDGenerator: nil, CreatedAtGenerator: nil}
+		 CreatedAtGenerator: nil}
 	todoId := uuid.New()
 	gomock.InOrder(
 		dbPoolMock.EXPECT().Query(gomock.Any(), specificTodoQuery, todoId).Return(dbRowsMock, nil),
@@ -430,7 +370,7 @@ func TestGetByIdWhenScanReturnAnError(t *testing.T) {
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
-		IDGenerator: nil, CreatedAtGenerator: nil}
+		 CreatedAtGenerator: nil}
 	todoId := uuid.New()
 	todoDone := false
 	wantedTodo := model.Todo{Id: todoId.String(), Title: "title1",
@@ -452,7 +392,7 @@ func TestGetByIdWhenScanReturnAnError2(t *testing.T) {
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
-		IDGenerator: nil, CreatedAtGenerator: nil}
+		 CreatedAtGenerator: nil}
 	todoId := uuid.New()
 	todoDone := false
 	wantedTodo := model.Todo{Id: todoId.String(), Title: "title1",
@@ -477,7 +417,7 @@ func TestGetByIdWhenErrReturnAnError(t *testing.T) {
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
-		IDGenerator: nil, CreatedAtGenerator: nil}
+		 CreatedAtGenerator: nil}
 	todoId := uuid.New()
 	gomock.InOrder(
 		dbPoolMock.EXPECT().Query(gomock.Any(), specificTodoQuery, todoId).Return(dbRowsMock, nil),
@@ -488,12 +428,12 @@ func TestGetByIdWhenErrReturnAnError(t *testing.T) {
 	assert.Equal(t, common.ErrError, err)
 }
 
-func TestGetByIdWhenIDGeneratorOrCreatedAtGeneratorIsNil(t *testing.T) {
+func TestGetByIdWhenCreatedAtGeneratorIsNil(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
-		IDGenerator: nil, CreatedAtGenerator: nil}
+		 CreatedAtGenerator: nil}
 	todoId := uuid.New()
 	gomock.InOrder(
 		dbPoolMock.EXPECT().Query(gomock.Any(), specificTodoQuery, todoId).Return(dbRowsMock, nil),
@@ -510,7 +450,7 @@ func TestGetByIdWhenDBPoolIsNil(t *testing.T) {
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: nil,
-		IDGenerator: nil, CreatedAtGenerator: nil}
+		 CreatedAtGenerator: nil}
 	todoId := uuid.New()
 	dbPoolMock.EXPECT().Query(gomock.Any(), gomock.Any()).Times(0)
 	dbRowsMock.EXPECT().Err().Times(0)
@@ -526,7 +466,7 @@ func TestGetAllByUserId(t *testing.T) {
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
-		IDGenerator: nil, CreatedAtGenerator: nil}
+		 CreatedAtGenerator: nil}
 	userId := uuid.New()
 	todoDone1 := false
 	todoDone2 := true
@@ -569,7 +509,7 @@ func TestGetAllByUserId2(t *testing.T) {
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
-		IDGenerator: nil, CreatedAtGenerator: nil}
+		 CreatedAtGenerator: nil}
 	userId := uuid.New()
 	gomock.InOrder(
 		dbPoolMock.EXPECT().Query(gomock.Any(), allTodosOfSomeUser, userId).Return(dbRowsMock, nil),
@@ -586,7 +526,7 @@ func TestGetAllByUserWhenErrReturnAnError(t *testing.T) {
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
-		IDGenerator: nil, CreatedAtGenerator: nil}
+		 CreatedAtGenerator: nil}
 	userId := uuid.New()
 	gomock.InOrder(
 		dbPoolMock.EXPECT().Query(gomock.Any(), allTodosOfSomeUser, userId).Return(dbRowsMock, nil),
@@ -602,7 +542,7 @@ func TestGetAllByUserIdWhenScanReturnAnError(t *testing.T) {
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
-		IDGenerator: nil, CreatedAtGenerator: nil}
+		 CreatedAtGenerator: nil}
 	userId := uuid.New()
 	todoDone1 := false
 	todoDone2 := true
@@ -629,7 +569,7 @@ func TestGetAllByUserIdWhenScanReturnAnError2(t *testing.T) {
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
-		IDGenerator: nil, CreatedAtGenerator: nil}
+		 CreatedAtGenerator: nil}
 	userId := uuid.New()
 	todoDone1 := false
 	todoDone2 := true
@@ -666,12 +606,12 @@ func TestGetAllByUserIdWhenScanReturnAnError2(t *testing.T) {
 	assert.Equal(t, common.ErrError, err)
 }
 
-func TestGetAllByUserIdWhenIDGeneratorOrCreatedAtGeneratorIsNil(t *testing.T) {
+func TestGetAllByUserIdWhenCreatedAtGeneratorIsNil(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
-		IDGenerator: nil, CreatedAtGenerator: nil}
+		 CreatedAtGenerator: nil}
 	userId := uuid.New()
 	gomock.InOrder(
 		dbPoolMock.EXPECT().Query(gomock.Any(), allTodosOfSomeUser, userId).Return(dbRowsMock, nil),
@@ -688,7 +628,7 @@ func TestGetAllByUserIdWhenDBPoolIsNil(t *testing.T) {
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: nil,
-		IDGenerator: nil, CreatedAtGenerator: nil}
+		 CreatedAtGenerator: nil}
 	userId := uuid.New()
 	gomock.InOrder(
 		dbPoolMock.EXPECT().Query(gomock.Any(), gomock.Any()).Times(0),
@@ -705,7 +645,7 @@ func TestUpdate(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
-		IDGenerator: nil, CreatedAtGenerator: nil}
+		 CreatedAtGenerator: nil}
 	todoDone1 := false
 	todo := model.Todo{Id: uuid.New().String(), Title: "title1", Description: "description1",
 		Done: &todoDone1, CreatedAt: time.Now()}
@@ -719,7 +659,7 @@ func TestUpdateWhenDBPoolReturnAnError(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
-		IDGenerator: nil, CreatedAtGenerator: nil}
+		 CreatedAtGenerator: nil}
 	todoDone1 := false
 	todo := model.Todo{Id: uuid.New().String(), Title: "title1", Description: "description1",
 		Done: &todoDone1, CreatedAt: time.Now()}
@@ -733,7 +673,7 @@ func TestUpdateWhenDBoolIsNil(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: nil,
-		IDGenerator: nil, CreatedAtGenerator: nil}
+		 CreatedAtGenerator: nil}
 	todoDone1 := false
 	todo := model.Todo{Id: uuid.New().String(), Title: "title1", Description: "description1",
 		Done: &todoDone1, CreatedAt: time.Now()}
@@ -743,11 +683,11 @@ func TestUpdateWhenDBoolIsNil(t *testing.T) {
 	assert.Equal(t, ErrTodoRepositoryInitialization, err)
 }
 
-func TestUpdateWhenIDGeneratorOrCreatedAtGeneratorIsNil(t *testing.T) {
+func TestUpdateWhenCreatedAtGeneratorIsNil(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
-		IDGenerator: nil, CreatedAtGenerator: nil}
+		 CreatedAtGenerator: nil}
 	todoDone1 := false
 	todo := model.Todo{Id: uuid.New().String(), Title: "title1", Description: "description1",
 		Done: &todoDone1, CreatedAt: time.Now()}
@@ -761,7 +701,7 @@ func TestUpdateWhenTodoIsInvalid(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
-		IDGenerator: nil, CreatedAtGenerator: nil}
+		 CreatedAtGenerator: nil}
 	todoDone1 := false
 	invalidTodo := model.Todo{Id: uuid.New().String(), Title: "", Description: "description1",
 		Done: &todoDone1, CreatedAt: time.Now()}
@@ -775,7 +715,7 @@ func TestUpdateWhenTodoIsInvalid2(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
-		IDGenerator: nil, CreatedAtGenerator: nil}
+		 CreatedAtGenerator: nil}
 	todoDone1 := false
 	invalidTodo := model.Todo{Id: uuid.New().String(), Title: "", Description: "description1",
 		Done: &todoDone1, CreatedAt: time.Now()}
@@ -790,7 +730,7 @@ func TestDelete(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		dbPoolMock := common.NewMockDBPool(mockCtrl)
 		todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
-			IDGenerator: nil, CreatedAtGenerator: nil}
+			 CreatedAtGenerator: nil}
 		todoId := uuid.New()
 		dbPoolMock.EXPECT().Exec(gomock.Any(), deleteQuery, todoId).Return([]byte{}, nil)
 		err := todoRepositoryImpl.Delete(todoId)
@@ -801,7 +741,7 @@ func TestDelete(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		dbPoolMock := common.NewMockDBPool(mockCtrl)
 		todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock,
-			IDGenerator: nil, CreatedAtGenerator: nil}
+			 CreatedAtGenerator: nil}
 		todoId := uuid.New()
 		dbPoolMock.EXPECT().Exec(gomock.Any(), deleteQuery, todoId).Return([]byte{}, common.ErrError)
 		err := todoRepositoryImpl.Delete(todoId)
@@ -811,11 +751,11 @@ func TestDelete(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		dbPoolMock := common.NewMockDBPool(mockCtrl)
 		todoRepositoryImpl := TodoRepositoryImpl{DBPool: nil,
-			IDGenerator: nil, CreatedAtGenerator: nil}
+			 CreatedAtGenerator: nil}
 		todoId := uuid.New()
 		dbPoolMock.EXPECT().Exec(gomock.Any(), deleteQuery, todoId).Times(0)
 		err := todoRepositoryImpl.Delete(todoId)
 		assert.Equal(t, ErrTodoRepositoryInitialization, err)
 	})
-	t.Run("When IDGenerator or CreatedAtGenerator is nil: No problem", func1)
+	t.Run("When CreatedAtGenerator is nil: No problem", func1)
 }
