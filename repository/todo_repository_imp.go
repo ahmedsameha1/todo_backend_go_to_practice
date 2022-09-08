@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"errors"
-	"time"
 
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/common"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/model"
@@ -24,19 +23,18 @@ const (
 )
 
 type TodoRepositoryImpl struct {
-	DBPool             common.DBPool
-	CreatedAtGenerator func() time.Time
+	DBPool common.DBPool
 }
 
 func (tr TodoRepositoryImpl) Create(todo *model.Todo) (err error) {
 	if !model.IsValid(todo) {
 		return ErrInvalidTodo
 	}
-	if tr.DBPool == nil || tr.CreatedAtGenerator == nil {
+	if tr.DBPool == nil {
 		err = ErrTodoRepositoryInitialization
 	} else {
 		_, err = tr.DBPool.Exec(context.Background(), insertTodoQuery, todo.Id, todo.Title,
-			todo.Description, todo.Done, tr.CreatedAtGenerator())
+			todo.Description, todo.Done, todo.CreatedAt)
 	}
 	return err
 }

@@ -3,6 +3,7 @@ package model
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -50,7 +51,8 @@ func TestIsValidWhenTodoDoneIsNil(t *testing.T) {
 
 func TestIsValidWhenTodoIsValid(t *testing.T) {
 	todoDone := false
-	todo := Todo{Id: uuid.New().String(), Description: "description", Title: "title", Done: &todoDone}
+	todo := Todo{Id: uuid.New().String(), Description: "description", Title: "title",
+		Done: &todoDone, CreatedAt: time.Now()}
 	ok := IsValid(todo)
 	assert.True(t, ok)
 }
@@ -71,5 +73,12 @@ func TestIsValid(t *testing.T) {
 		uUid := uuid.New()
 		todo = Todo{Id: uUid.String()[:0] + "u" + uUid.String()[1:], Description: "description", Title: "title", Done: &todoDone}
 		assert.False(t, IsValid(todo))
+	})
+
+	t.Run("When there is no CreatedAt", func(t *testing.T) {
+		todoDone := false
+		todo := Todo{Id: uuid.New().String(), Description: "description", Title: "title", Done: &todoDone}
+		ok := IsValid(todo)
+		assert.False(t, ok)
 	})
 }

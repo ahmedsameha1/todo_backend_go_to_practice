@@ -9,12 +9,11 @@ import (
 var validatorr *validator.Validate = validator.New()
 
 type Todo struct {
-	Id          string    `json:"id" bindging:"required,uuid4" validate:"required,uuid4"`
-	Title       string    `json:"title" binding:"required" validate:"required"`
-	Description string    `json:"description" binding:"required" validate:"required"`
-	Done        *bool     `json:"done" binding:"required" validate:"required"`
-	//TODO CreatedAt should be required
-	CreatedAt   time.Time `json:"createdAt"`
+	Id          string `json:"id" bindging:"required,uuid4" validate:"required,uuid4"`
+	Title       string `json:"title" binding:"required" validate:"required"`
+	Description string `json:"description" binding:"required" validate:"required"`
+	Done        *bool  `json:"done" binding:"required" validate:"required"`
+	CreatedAt time.Time `json:"createdAt" binding:"required" validate:"required"`
 	//TODO UpdatedAt should be explored
 	//TODO userId shoulb be explored
 }
