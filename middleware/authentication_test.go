@@ -56,10 +56,24 @@ func TestGetAuthMiddleware(t *testing.T) {
 		authMiddleware(ginContextMock)
 	})
 
-	t.Run(`token has been set in gin.Context & Next() had been called`, func(t *testing.T) {
+	t.Run(`token doesn't have uid`, func(t *testing.T) {
 		firebaseAuthClientMock, ginContextMock, errorHandlerMock := CreateMocks(t)
 		ha := "eyJhbGciOiJ"
 		tokeN := new(auth.Token)
+		ginContextMock.EXPECT().GetHeader(AUTHORIZATION).Return(BEARER + ha)
+		errorHandlerMock.EXPECT().HandleAppError(ErrNoUIDinToken, "", http.StatusUnauthorized)
+		firebaseAuthClientMock.EXPECT().VerifyIDToken(gomock.Any(),
+			ha).
+			Return(tokeN, nil)
+		authMiddleware := GetAuthMiddleware(firebaseAuthClientMock, errorHandlerMock)
+		assert.NotNil(t, authMiddleware)
+		authMiddleware(ginContextMock)
+	})
+
+	t.Run(`token has been set in gin.Context & Next() had been called`, func(t *testing.T) {
+		firebaseAuthClientMock, ginContextMock, errorHandlerMock := CreateMocks(t)
+		ha := "eyJhbGciOiJ"
+		tokeN := &auth.Token{UID: "woefhweh"}
 		ginContextMock.EXPECT().GetHeader(AUTHORIZATION).Return(BEARER + ha)
 		ginContextMock.EXPECT().Set(AuthToken, tokeN)
 		ginContextMock.EXPECT().Next()
