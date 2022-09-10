@@ -6,6 +6,7 @@ import (
 
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/common"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/controllers"
+	"github.com/ahmedsameha1/todo_backend_go_to_practice/middleware"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -16,6 +17,11 @@ func TestSetTodoRoutes(t *testing.T) {
 	routerMock := common.NewMockRouter(mockCtrl)
 	todoRepositoryMock := common.NewMockTodoRepository(mockCtrl)
 	errorHandlerMock := common.NewMockErrorHandler(mockCtrl)
+	firebaseAuthClientMock := common.NewMockAuthClient(mockCtrl)
+	authMiddleware := middleware.GetAuthMiddleware(firebaseAuthClientMock, errorHandlerMock)
+	routerMock.EXPECT().Use(gomock.Any()).Do(func(handler func(common.WebContext)) {
+		assert.Equal(t, reflect.ValueOf(authMiddleware).Pointer(), reflect.ValueOf(handler).Pointer())
+	})
 	create := controllers.Create(todoRepositoryMock, errorHandlerMock)
 	routerMock.EXPECT().POST("/todos", gomock.Any()).Do(func(path string, handler func(common.WebContext)) {
 		assert.Equal(t, reflect.ValueOf(create).Pointer(), reflect.ValueOf(handler).Pointer())
@@ -40,5 +46,5 @@ func TestSetTodoRoutes(t *testing.T) {
 	routerMock.EXPECT().DELETE("/todos/:id", gomock.Any()).Do(func(path string, handler func(common.WebContext)) {
 		assert.Equal(t, reflect.ValueOf(delete).Pointer(), reflect.ValueOf(handler).Pointer())
 	})
-	SetTodoRoutes(routerMock, todoRepositoryMock, errorHandlerMock)
+	SetTodoRoutes(routerMock, todoRepositoryMock, errorHandlerMock, firebaseAuthClientMock)
 }

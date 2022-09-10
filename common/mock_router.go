@@ -109,3 +109,21 @@ func (mr *MockRouterMockRecorder) PUT(arg0 interface{}, arg1 ...interface{}) *go
 	varargs := append([]interface{}{arg0}, arg1...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PUT", reflect.TypeOf((*MockRouter)(nil).PUT), varargs...)
 }
+
+// Use mocks base method.
+func (m *MockRouter) Use(arg0 ...func(WebContext)) gin.IRoutes {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{}
+	for _, a := range arg0 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Use", varargs...)
+	ret0, _ := ret[0].(gin.IRoutes)
+	return ret0
+}
+
+// Use indicates an expected call of Use.
+func (mr *MockRouterMockRecorder) Use(arg0 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Use", reflect.TypeOf((*MockRouter)(nil).Use), arg0...)
+}
