@@ -26,7 +26,7 @@ type Logger interface {
 }
 
 type TodoRepository interface {
-	Create(todo *model.Todo) error
+	Create(todo *model.Todo, userId string) error
 	GetAll() ([]model.Todo, error)
 	GetById(id uuid.UUID) (*model.Todo, error)
 	GetAllByUserId(id uuid.UUID) ([]model.Todo, error)
@@ -59,5 +59,6 @@ type WebContext interface {
 	Param(key string) string
 	GetHeader(key string) string
 	Set(key string, value any)
+	Get(key string) (value any, exists bool)
 	Next()
 }

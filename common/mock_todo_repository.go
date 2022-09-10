@@ -36,17 +36,17 @@ func (m *MockTodoRepository) EXPECT() *MockTodoRepositoryMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockTodoRepository) Create(arg0 *model.Todo) error {
+func (m *MockTodoRepository) Create(arg0 *model.Todo, arg1 string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", arg0)
+	ret := m.ctrl.Call(m, "Create", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockTodoRepositoryMockRecorder) Create(arg0 interface{}) *gomock.Call {
+func (mr *MockTodoRepositoryMockRecorder) Create(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockTodoRepository)(nil).Create), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockTodoRepository)(nil).Create), arg0, arg1)
 }
 
 // Delete mocks base method.

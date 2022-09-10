@@ -6,61 +6,10 @@ import (
 
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/common"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/model"
-	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
-
-func TestCreate(t *testing.T) {
-	t.Run("Good case", func(t *testing.T) {
-		gin.SetMode(gin.TestMode)
-		mockCtrl := gomock.NewController(t)
-		ginContextMock := common.NewMockWebContext(mockCtrl)
-		todoRepositoryMock := common.NewMockTodoRepository(mockCtrl)
-		errorHandlerMock := common.NewMockErrorHandler(mockCtrl)
-		done := false
-		todo := model.Todo{Id: uuid.New().String(), Title: "title1",
-			Description: "description1",
-			Done:        &done}
-		ginContextMock.EXPECT().ShouldBindJSON(gomock.Any()).SetArg(0, todo)
-		ginContextMock.EXPECT().JSON(http.StatusOK, todo)
-		todoRepositoryMock.EXPECT().Create(&todo).Return(nil)
-		createTodo := Create(todoRepositoryMock, errorHandlerMock)
-		assert.NotNil(t, createTodo)
-		createTodo(ginContextMock)
-	})
-
-	t.Run("When TodoRepository returns an error", func(t *testing.T) {
-		mockCtrl := gomock.NewController(t)
-		ginContextMock := common.NewMockWebContext(mockCtrl)
-		todoRepositoryMock := common.NewMockTodoRepository(mockCtrl)
-		errorHandlerMock := common.NewMockErrorHandler(mockCtrl)
-		done := false
-		todo := model.Todo{Id: uuid.New().String(), Title: "title1",
-			Description: "description1",
-			Done:        &done}
-		ginContextMock.EXPECT().ShouldBindJSON(gomock.Any()).SetArg(0, todo)
-		todoRepositoryMock.EXPECT().Create(&todo).Return(common.ErrError)
-		errorHandlerMock.EXPECT().HandleAppError(common.ErrError, "", http.StatusInternalServerError)
-		createTodo := Create(todoRepositoryMock, errorHandlerMock)
-		assert.NotNil(t, createTodo)
-		createTodo(ginContextMock)
-	})
-
-	t.Run("When required fields are not present in the web request body", func(t *testing.T) {
-		mockCtrl := gomock.NewController(t)
-		ginContextMock := common.NewMockWebContext(mockCtrl)
-		todoRepositoryMock := common.NewMockTodoRepository(mockCtrl)
-		errorHandlerMock := common.NewMockErrorHandler(mockCtrl)
-		ginContextMock.EXPECT().ShouldBindJSON(gomock.Any()).Return(common.ErrError)
-		todoRepositoryMock.EXPECT().Create(gomock.Any()).Times(0)
-		errorHandlerMock.EXPECT().HandleAppError(common.ErrError, "", http.StatusBadRequest)
-		createTodo := Create(todoRepositoryMock, errorHandlerMock)
-		assert.NotNil(t, createTodo)
-		createTodo(ginContextMock)
-	})
-}
 
 func TestGetAll(t *testing.T) {
 	t.Run("Good case: there are no todos", func(t *testing.T) {

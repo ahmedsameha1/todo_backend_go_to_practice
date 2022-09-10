@@ -16,11 +16,12 @@ func TestCreate(t *testing.T) {
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock}
 	todoDone := false
+	userId := uuid.New().String()
 	todo := model.Todo{Id: uuid.New().String(), Title: "title1",
 		Description: "description1", Done: &todoDone, CreatedAt: time.Now()}
 	dbPoolMock.EXPECT().Exec(gomock.Any(), insertTodoQuery, todo.Id,
-		todo.Title, todo.Description, todo.Done, todo.CreatedAt).Return(nil, nil)
-	err := todoRepositoryImpl.Create(&todo)
+		todo.Title, todo.Description, todo.Done, todo.CreatedAt, userId).Return(nil, nil)
+	err := todoRepositoryImpl.Create(&todo, userId)
 	assert.NoError(t, err)
 }
 
@@ -29,11 +30,12 @@ func TestCreateWhenDBPoolReturnAnError(t *testing.T) {
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock}
 	todoDone := false
+	userId := uuid.New().String()
 	todo := model.Todo{Id: uuid.New().String(), Title: "title1",
 		Description: "description1", Done: &todoDone, CreatedAt: time.Now()}
 	dbPoolMock.EXPECT().Exec(gomock.Any(), insertTodoQuery, todo.Id,
-		todo.Title, todo.Description, todo.Done, todo.CreatedAt).Return(nil, common.ErrError)
-	err := todoRepositoryImpl.Create(&todo)
+		todo.Title, todo.Description, todo.Done, todo.CreatedAt, userId).Return(nil, common.ErrError)
+	err := todoRepositoryImpl.Create(&todo, userId)
 	assert.Error(t, err)
 }
 
@@ -42,10 +44,11 @@ func TestCreateWhenCreatingTodoRepositoryWithNilDBPool(t *testing.T) {
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: nil}
 	todoDone := false
+	userId := uuid.New().String()
 	todo := model.Todo{Id: uuid.New().String(), Title: "title1",
 		Description: "description1", Done: &todoDone, CreatedAt: time.Now()}
 	dbPoolMock.EXPECT().Exec(gomock.Any(), gomock.Any()).Times(0)
-	err := todoRepositoryImpl.Create(&todo)
+	err := todoRepositoryImpl.Create(&todo, userId)
 	assert.Equal(t, err, ErrTodoRepositoryInitialization)
 }
 
@@ -54,10 +57,11 @@ func TestCreateWhenTodoIsInvalid(t *testing.T) {
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock}
 	todoDone := false
+	userId := uuid.New().String()
 	invalidTodo := model.Todo{Title: "title1", Done: &todoDone, CreatedAt: time.Now()}
 	dbPoolMock.EXPECT().Exec(gomock.Any(), insertTodoQuery, invalidTodo.Id,
 		invalidTodo.Title, invalidTodo.Description, invalidTodo.Done, invalidTodo.CreatedAt).Times(0)
-	err := todoRepositoryImpl.Create(&invalidTodo)
+	err := todoRepositoryImpl.Create(&invalidTodo, userId)
 	assert.Equal(t, ErrInvalidTodo, err)
 }
 
@@ -66,10 +70,11 @@ func TestCreateWhenTodoIsInvalid2(t *testing.T) {
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock}
 	todoDone := false
+	userId := uuid.New().String()
 	invalidTodo := model.Todo{Title: "title1", Done: &todoDone, CreatedAt: time.Now()}
 	dbPoolMock.EXPECT().Exec(gomock.Any(), insertTodoQuery, invalidTodo.Id,
 		invalidTodo.Title, invalidTodo.Description, invalidTodo.Done, invalidTodo.CreatedAt).Times(0)
-	err := todoRepositoryImpl.Create(nil)
+	err := todoRepositoryImpl.Create(nil, userId)
 	assert.Equal(t, ErrInvalidTodo, err)
 }
 

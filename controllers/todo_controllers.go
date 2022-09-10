@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"errors"
-	"log"
 	"net/http"
 
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/common"
@@ -12,25 +11,6 @@ import (
 )
 
 var ErrParseIsNil error = errors.New("parse is nil")
-var logger *log.Logger = log.Default()
-
-func Create(todoRepository common.TodoRepository, errorHandler common.ErrorHandler) func(common.WebContext) {
-	return func(ctx common.WebContext) {
-		var json model.Todo
-		if err := ctx.ShouldBindJSON(&json); err != nil {
-			errorHandler.HandleAppError(err,
-				"", http.StatusBadRequest)
-			return
-		}
-		err := todoRepository.Create(&json)
-		if err != nil {
-			errorHandler.HandleAppError(err,
-				"", http.StatusInternalServerError)
-		} else {
-			ctx.JSON(http.StatusOK, json)
-		}
-	}
-}
 
 func Update(todoRepository common.TodoRepository, errorHandler common.ErrorHandler) func(common.WebContext) {
 	return func(ctx common.WebContext) {

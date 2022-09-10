@@ -33,6 +33,21 @@ func (m *MockWebContext) EXPECT() *MockWebContextMockRecorder {
 	return m.recorder
 }
 
+// Get mocks base method.
+func (m *MockWebContext) Get(arg0 string) (interface{}, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", arg0)
+	ret0, _ := ret[0].(interface{})
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockWebContextMockRecorder) Get(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockWebContext)(nil).Get), arg0)
+}
+
 // GetHeader mocks base method.
 func (m *MockWebContext) GetHeader(arg0 string) string {
 	m.ctrl.T.Helper()
