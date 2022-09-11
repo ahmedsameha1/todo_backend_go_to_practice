@@ -29,16 +29,6 @@ func Update(todoRepository common.TodoRepository, errorHandler common.ErrorHandl
 	}
 }
 
-func GetAll(todoRepository common.TodoRepository, errorHandler common.ErrorHandler) func(common.WebContext) {
-	return func(ctx common.WebContext) {
-		if todos, err := todoRepository.GetAll(); err != nil {
-			errorHandler.HandleAppError(err, "", http.StatusInternalServerError)
-		} else {
-			ctx.JSON(http.StatusOK, todos)
-		}
-	}
-}
-
 func GetById(todoRepository common.TodoRepository, errorHandler common.ErrorHandler,
 	parse func(string) (uuid.UUID, error)) func(common.WebContext) {
 	return func(ctx common.WebContext) {

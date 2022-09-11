@@ -29,7 +29,7 @@ func Create(todoRepository common.TodoRepository, errorHandler common.ErrorHandl
 	return func(ctx common.WebContext) {
 		token, ok := ctx.Get(middleware.AuthToken)
 		if !ok {
-			errorHandler.HandleAppError(middleware.ErrNoUIDinToken, "", http.StatusUnauthorized)
+			errorHandler.HandleAppError(middleware.ErrNoUID, "", http.StatusUnauthorized)
 		} else {
 		var json model.Todo
 		if err := ctx.ShouldBindJSON(&json); err != nil {
@@ -46,5 +46,21 @@ func Create(todoRepository common.TodoRepository, errorHandler common.ErrorHandl
 			ctx.JSON(http.StatusOK, json)
 		}
 	}
+	}
+}
+
+func GetAll(todoRepository common.TodoRepository, errorHandler common.ErrorHandler) func(common.WebContext) {
+	return func(ctx common.WebContext) {
+		tokeN, ok := ctx.Get(middleware.AuthToken)
+		if !ok {
+			errorHandler.HandleAppError(middleware.ErrNoUID, "", http.StatusUnauthorized)
+		} else {
+			token := tokeN.(*auth.Token)
+			if todos, err := todoRepository.GetAll(token.UID); err != nil {
+				errorHandler.HandleAppError(err, "", http.StatusInternalServerError)
+			} else {
+				ctx.JSON(http.StatusOK, todos)
+			}
+		}
 	}
 }

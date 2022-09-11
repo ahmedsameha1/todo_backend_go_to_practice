@@ -14,8 +14,8 @@ var ErrNotFound = errors.New("item is not found")
 var ErrInvalidTodo = errors.New("invalid todo")
 
 const (
-	insertTodoQuery    string = "insert into todo (id, title, description, done, createdAt, userId) values ($1::UUID, $2, $3, $4, $5, $6::UUID)"
-	allTodosQuery      string = "select * from todo"
+	insertTodoQuery    string = "insert into todo (id, title, description, done, created_at, userId) values ($1::UUID, $2, $3, $4, $5, $6::UUID)"
+	allTodosQuery      string = "select * from todo where user_id = $1::UUID"
 	specificTodoQuery  string = "select * from todo where id = $1"
 	allTodosOfSomeUser string = "select * from todo where user_id = $1"
 	updateQuery        string = "update todo set title = $2, description = $3, done = $4 where id = $1"
@@ -39,11 +39,11 @@ func (tr TodoRepositoryImpl) Create(todo *model.Todo, userId string) (err error)
 	return err
 }
 
-func (tr TodoRepositoryImpl) GetAll() ([]model.Todo, error) {
+func (tr TodoRepositoryImpl) GetAll(userId string) ([]model.Todo, error) {
 	if tr.DBPool == nil {
 		return nil, ErrTodoRepositoryInitialization
 	}
-	rows, _ := tr.DBPool.Query(context.Background(), allTodosQuery)
+	rows, _ := tr.DBPool.Query(context.Background(), allTodosQuery, userId)
 
 	todos := []model.Todo{}
 	for rows.Next() {

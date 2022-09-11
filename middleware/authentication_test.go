@@ -61,7 +61,7 @@ func TestGetAuthMiddleware(t *testing.T) {
 		ha := "eyJhbGciOiJ"
 		tokeN := new(auth.Token)
 		ginContextMock.EXPECT().GetHeader(AUTHORIZATION).Return(BEARER + ha)
-		errorHandlerMock.EXPECT().HandleAppError(ErrNoUIDinToken, "", http.StatusUnauthorized)
+		errorHandlerMock.EXPECT().HandleAppError(ErrNoUID, "", http.StatusUnauthorized)
 		firebaseAuthClientMock.EXPECT().VerifyIDToken(gomock.Any(),
 			ha).
 			Return(tokeN, nil)

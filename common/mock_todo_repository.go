@@ -64,18 +64,18 @@ func (mr *MockTodoRepositoryMockRecorder) Delete(arg0 interface{}) *gomock.Call 
 }
 
 // GetAll mocks base method.
-func (m *MockTodoRepository) GetAll() ([]model.Todo, error) {
+func (m *MockTodoRepository) GetAll(arg0 string) ([]model.Todo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAll")
+	ret := m.ctrl.Call(m, "GetAll", arg0)
 	ret0, _ := ret[0].([]model.Todo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetAll indicates an expected call of GetAll.
-func (mr *MockTodoRepositoryMockRecorder) GetAll() *gomock.Call {
+func (mr *MockTodoRepositoryMockRecorder) GetAll(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockTodoRepository)(nil).GetAll))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockTodoRepository)(nil).GetAll), arg0)
 }
 
 // GetAllByUserId mocks base method.

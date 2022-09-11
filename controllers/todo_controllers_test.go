@@ -11,52 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetAll(t *testing.T) {
-	t.Run("Good case: there are no todos", func(t *testing.T) {
-		mockCtrl := gomock.NewController(t)
-		ginContextMock := common.NewMockWebContext(mockCtrl)
-		todoRepositoryMock := common.NewMockTodoRepository(mockCtrl)
-		errorHandlerMock := common.NewMockErrorHandler(mockCtrl)
-		todoRepositoryMock.EXPECT().GetAll().Return([]model.Todo{}, nil)
-		ginContextMock.EXPECT().JSON(http.StatusOK, []model.Todo{})
-		getAll := GetAll(todoRepositoryMock, errorHandlerMock)
-		assert.NotNil(t, getAll)
-		getAll(ginContextMock)
-	})
-
-	t.Run("Good case: there is at least one todo", func(t *testing.T) {
-		mockCtrl := gomock.NewController(t)
-		ginContextMock := common.NewMockWebContext(mockCtrl)
-		todoRepositoryMock := common.NewMockTodoRepository(mockCtrl)
-		errorHandlerMock := common.NewMockErrorHandler(mockCtrl)
-		todo1done := false
-		todo2done := true
-		todo3done := false
-		todos := []model.Todo{{Id: uuid.New().String(), Title: "title1", Description: "description1", Done: &todo1done},
-			{Id: uuid.New().String(), Title: "title2", Description: "description2", Done: &todo2done},
-			{Id: uuid.New().String(), Title: "title3", Description: "description3", Done: &todo3done}}
-		ginContextMock.EXPECT().JSON(http.StatusOK, todos)
-		todoRepositoryMock.EXPECT().GetAll().
-			Return(todos, nil)
-		getTodos := GetAll(todoRepositoryMock, errorHandlerMock)
-		assert.NotNil(t, getTodos)
-		getTodos(ginContextMock)
-	})
-
-	t.Run("When TodoRepository returns an error", func(t *testing.T) {
-		mockCtrl := gomock.NewController(t)
-		ginContextMock := common.NewMockWebContext(mockCtrl)
-		todoRepositoryMock := common.NewMockTodoRepository(mockCtrl)
-		errorHandlerMock := common.NewMockErrorHandler(mockCtrl)
-		todoRepositoryMock.EXPECT().GetAll().
-			Return(nil, common.ErrError)
-		errorHandlerMock.EXPECT().HandleAppError(common.ErrError, "", http.StatusInternalServerError)
-		getAll := GetAll(todoRepositoryMock, errorHandlerMock)
-		assert.NotNil(t, getAll)
-		getAll(ginContextMock)
-	})
-}
-
 func TestGetById(t *testing.T) {
 	t.Run("Good case", func(t *testing.T) {
 		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)

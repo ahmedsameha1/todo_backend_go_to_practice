@@ -82,6 +82,7 @@ func TestGetAll(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
+	userId := uuid.New().String()
 	todoDone1 := false
 	todoDone2 := true
 	todoDone3 := false
@@ -92,7 +93,7 @@ func TestGetAll(t *testing.T) {
 	}
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock}
 	gomock.InOrder(
-		dbPoolMock.EXPECT().Query(gomock.Any(), allTodosQuery).Return(dbRowsMock, nil),
+		dbPoolMock.EXPECT().Query(gomock.Any(), allTodosQuery, userId).Return(dbRowsMock, nil),
 		dbRowsMock.EXPECT().Next().Return(true),
 		dbRowsMock.EXPECT().Scan(gomock.Any()).SetArg(0, wantedTodos[0].Id),
 		dbRowsMock.EXPECT().Scan(gomock.Any()).SetArg(0, wantedTodos[0].Title),
@@ -114,7 +115,7 @@ func TestGetAll(t *testing.T) {
 		dbRowsMock.EXPECT().Next().Return(false),
 		dbRowsMock.EXPECT().Err().Return(nil),
 	)
-	todos, err := todoRepositoryImpl.GetAll()
+	todos, err := todoRepositoryImpl.GetAll(userId)
 	assert.Equal(t, wantedTodos, todos)
 	assert.NoError(t, err)
 }
@@ -123,13 +124,14 @@ func TestGetAll2(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
+	userId := uuid.New().String()
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock}
 	gomock.InOrder(
-		dbPoolMock.EXPECT().Query(gomock.Any(), allTodosQuery).Return(dbRowsMock, nil),
+		dbPoolMock.EXPECT().Query(gomock.Any(), allTodosQuery, userId).Return(dbRowsMock, nil),
 		dbRowsMock.EXPECT().Next().Return(false),
 		dbRowsMock.EXPECT().Err().Return(nil),
 	)
-	todos, err := todoRepositoryImpl.GetAll()
+	todos, err := todoRepositoryImpl.GetAll(userId)
 	assert.Equal(t, []model.Todo{}, todos)
 	assert.NoError(t, err)
 }
@@ -138,6 +140,7 @@ func TestGetAllWhenAScanCallReturnAnError(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
+	userId := uuid.New().String()
 	todoDone1 := false
 	todoDone2 := true
 	todoDone3 := false
@@ -148,12 +151,12 @@ func TestGetAllWhenAScanCallReturnAnError(t *testing.T) {
 	}
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock}
 	gomock.InOrder(
-		dbPoolMock.EXPECT().Query(gomock.Any(), allTodosQuery).Return(dbRowsMock, nil),
+		dbPoolMock.EXPECT().Query(gomock.Any(), allTodosQuery, userId).Return(dbRowsMock, nil),
 		dbRowsMock.EXPECT().Next().Return(true),
 		dbRowsMock.EXPECT().Scan(gomock.Any()).SetArg(0, wantedTodos[0].Id),
 		dbRowsMock.EXPECT().Scan(gomock.Any()).SetArg(0, wantedTodos[0].Title).Return(common.ErrError),
 	)
-	todos, err := todoRepositoryImpl.GetAll()
+	todos, err := todoRepositoryImpl.GetAll(userId)
 	assert.Nil(t, todos)
 	assert.Error(t, err, common.ErrError)
 }
@@ -162,6 +165,7 @@ func TestGetAllWhenAScanCallReturnAnError2(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
+	userId := uuid.New().String()
 	todoDone1 := false
 	todoDone2 := true
 	todoDone3 := false
@@ -172,7 +176,7 @@ func TestGetAllWhenAScanCallReturnAnError2(t *testing.T) {
 	}
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock}
 	gomock.InOrder(
-		dbPoolMock.EXPECT().Query(gomock.Any(), allTodosQuery).Return(dbRowsMock, nil),
+		dbPoolMock.EXPECT().Query(gomock.Any(), allTodosQuery, userId).Return(dbRowsMock, nil),
 		dbRowsMock.EXPECT().Next().Return(true),
 		dbRowsMock.EXPECT().Scan(gomock.Any()).SetArg(0, wantedTodos[0].Id),
 		dbRowsMock.EXPECT().Scan(gomock.Any()).SetArg(0, wantedTodos[0].Title),
@@ -192,7 +196,7 @@ func TestGetAllWhenAScanCallReturnAnError2(t *testing.T) {
 		dbRowsMock.EXPECT().Scan(gomock.Any()).SetArg(0, wantedTodos[2].Done),
 		dbRowsMock.EXPECT().Scan(gomock.Any()).SetArg(0, wantedTodos[2].CreatedAt).Return(common.ErrError),
 	)
-	todos, err := todoRepositoryImpl.GetAll()
+	todos, err := todoRepositoryImpl.GetAll(userId)
 	assert.Nil(t, todos)
 	assert.Error(t, common.ErrError, err)
 }
@@ -201,6 +205,7 @@ func TestGetAllWhenErrCallReturnAnError(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
+	userId := uuid.New().String()
 	todoDone1 := false
 	todoDone2 := true
 	todoDone3 := false
@@ -211,7 +216,7 @@ func TestGetAllWhenErrCallReturnAnError(t *testing.T) {
 	}
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock}
 	gomock.InOrder(
-		dbPoolMock.EXPECT().Query(gomock.Any(), allTodosQuery).Return(dbRowsMock, common.ErrError),
+		dbPoolMock.EXPECT().Query(gomock.Any(), allTodosQuery, userId).Return(dbRowsMock, common.ErrError),
 		dbRowsMock.EXPECT().Next().Return(true),
 		dbRowsMock.EXPECT().Scan(gomock.Any()).SetArg(0, wantedTodos[0].Id),
 		dbRowsMock.EXPECT().Scan(gomock.Any()).SetArg(0, wantedTodos[0].Title),
@@ -233,7 +238,7 @@ func TestGetAllWhenErrCallReturnAnError(t *testing.T) {
 		dbRowsMock.EXPECT().Next().Return(false),
 		dbRowsMock.EXPECT().Err().Return(common.ErrError),
 	)
-	todos, err := todoRepositoryImpl.GetAll()
+	todos, err := todoRepositoryImpl.GetAll(userId)
 	assert.Nil(t, todos)
 	assert.Error(t, err, common.ErrError)
 }
@@ -243,11 +248,12 @@ func TestGetAllWhenDBPoolIsNil(t *testing.T) {
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: nil}
-	dbPoolMock.EXPECT().Query(gomock.Any(), gomock.Any()).Times(0)
+	userId := uuid.New().String()
+	dbPoolMock.EXPECT().Query(gomock.Any(), gomock.Any(), gomock.Any()).Times(0)
 	dbRowsMock.EXPECT().Next().Times(0)
 	dbRowsMock.EXPECT().Scan(gomock.Any()).Times(0)
 	dbRowsMock.EXPECT().Err().Times(0)
-	todos, err := todoRepositoryImpl.GetAll()
+	todos, err := todoRepositoryImpl.GetAll(userId)
 	assert.Nil(t, todos)
 	assert.Equal(t, err, ErrTodoRepositoryInitialization)
 }

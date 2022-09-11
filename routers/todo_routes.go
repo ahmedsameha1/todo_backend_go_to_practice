@@ -12,7 +12,7 @@ func SetTodoRoutes(router common.Router, todoRepository common.TodoRepository,
 	errorHandler common.ErrorHandler, authClient common.AuthClient) common.Router {
 	router.Use(middleware.GetAuthMiddleware(authClient, errorHandler))
 	router.POST("/todos", handler.Create(todoRepository, errorHandler))
-	router.GET("/todos", controllers.GetAll(todoRepository, errorHandler))
+	router.GET("/todos", handler.GetAll(todoRepository, errorHandler))
 	router.GET("/todos/:id", controllers.GetById(todoRepository, errorHandler, uuid.Parse))
 	router.GET("/todos/users/:id", controllers.GetAllByUserId(todoRepository, errorHandler, uuid.Parse))
 	router.PUT("/todos", controllers.Update(todoRepository, errorHandler))
