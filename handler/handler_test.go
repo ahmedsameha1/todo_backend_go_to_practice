@@ -24,7 +24,7 @@ func TestHandleError(t *testing.T) {
 		handlerErr := errors.New("handlerErr1")
 		message := "message1"
 		code := 404
-		errObj := common.AppError{Error: handlerErr.Error(), Message: message}
+		errObj := AppError{Error: handlerErr.Error(), Message: message}
 		loggerMock.EXPECT().Printf("%v\n", errObj)
 		ginContextMock.EXPECT().JSON(code, errObj)
 		errorHandlerImpl := ErrorHandlerImpl{WebContext: ginContextMock, Logger: loggerMock}

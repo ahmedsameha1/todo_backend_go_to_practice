@@ -14,8 +14,13 @@ type ErrorHandlerImpl struct {
 	Logger     common.Logger
 }
 
+type AppError struct {
+	Error   string `json:"error"`
+	Message string `json:"message,omitempty"`
+}
+
 func (eh ErrorHandlerImpl) HandleAppError(someError error, messege string, code int) {
-	errObj := common.AppError{Error: someError.Error(), Message: messege}
+	errObj := AppError{Error: someError.Error(), Message: messege}
 	eh.Logger.Printf("%v\n", errObj)
 	eh.WebContext.JSON(code, errObj)
 }
