@@ -5,8 +5,10 @@ import (
 
 	"firebase.google.com/go/auth"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/common"
+	"github.com/ahmedsameha1/todo_backend_go_to_practice/controllers"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/middleware"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/model"
+	"github.com/google/uuid"
 )
 
 type ErrorHandlerImpl struct {
@@ -60,6 +62,33 @@ func GetAll(todoRepository common.TodoRepository, errorHandler common.ErrorHandl
 				errorHandler.HandleAppError(err, "", http.StatusInternalServerError)
 			} else {
 				ctx.JSON(http.StatusOK, todos)
+			}
+		}
+	}
+}
+
+func GetById(todoRepository common.TodoRepository, errorHandler common.ErrorHandler,
+	parse func(string) (uuid.UUID, error)) func(common.WebContext) {
+	return func(ctx common.WebContext) {
+		token, ok := ctx.Get(middleware.AuthToken)
+		if !ok {
+			errorHandler.HandleAppError(middleware.ErrNoUID, "", http.StatusUnauthorized)
+		} else {
+			if parse != nil {
+				id, err := parse(ctx.Param("id"))
+				if err != nil {
+					errorHandler.HandleAppError(err, "", http.StatusBadRequest)
+				} else {
+					token := token.(*auth.Token)
+					todo, err := todoRepository.GetById(id, token.UID)
+					if err != nil {
+						errorHandler.HandleAppError(err, "", http.StatusInternalServerError)
+					} else {
+						ctx.JSON(http.StatusOK, todo)
+					}
+				}
+			} else {
+				errorHandler.HandleAppError(controllers.ErrParseIsNil, "", http.StatusInternalServerError)
 			}
 		}
 	}

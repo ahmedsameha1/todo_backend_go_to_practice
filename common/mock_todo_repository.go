@@ -79,18 +79,18 @@ func (mr *MockTodoRepositoryMockRecorder) GetAll(arg0 interface{}) *gomock.Call 
 }
 
 // GetById mocks base method.
-func (m *MockTodoRepository) GetById(arg0 uuid.UUID) (*model.Todo, error) {
+func (m *MockTodoRepository) GetById(arg0 uuid.UUID, arg1 string) (*model.Todo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetById", arg0)
+	ret := m.ctrl.Call(m, "GetById", arg0, arg1)
 	ret0, _ := ret[0].(*model.Todo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetById indicates an expected call of GetById.
-func (mr *MockTodoRepositoryMockRecorder) GetById(arg0 interface{}) *gomock.Call {
+func (mr *MockTodoRepositoryMockRecorder) GetById(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockTodoRepository)(nil).GetById), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockTodoRepository)(nil).GetById), arg0, arg1)
 }
 
 // Update mocks base method.

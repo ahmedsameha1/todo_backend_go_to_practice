@@ -7,6 +7,7 @@ import (
 
 	"firebase.google.com/go/auth"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/common"
+	"github.com/ahmedsameha1/todo_backend_go_to_practice/controllers"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/middleware"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/model"
 	"github.com/gin-gonic/gin"
@@ -162,4 +163,80 @@ func TestGetAll(t *testing.T) {
 		assert.NotNil(t, getAll)
 		getAll(ginContextMock)
 	})
+}
+
+func TestGetById(t *testing.T) {
+	t.Run("Good case", func(t *testing.T) {
+		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
+		todoId := uuid.New()
+		token := &auth.Token{UID: "heowh"}
+		uUidParseMock := func(id string) (uuid.UUID, error) {
+			return todoId, nil
+		}
+		done := false
+		todo := model.Todo{Id: todoId.String(), Title: "title1", Description: "description1", Done: &done}
+		todoRepositoryMock.EXPECT().GetById(todoId, token.UID).Return(&todo, nil)
+		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(token, true)
+		ginContextMock.EXPECT().Param("id").Return(todoId.String())
+		ginContextMock.EXPECT().JSON(http.StatusOK, &todo)
+		getById := GetById(todoRepositoryMock, errorHandlerMock, uUidParseMock)
+		assert.NotNil(t, getById)
+		getById(ginContextMock)
+	})
+
+	t.Run("When invalid id is sent as a path parameter in the url", func(t *testing.T) {
+		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
+		token := &auth.Token{UID: "heowh"}
+		uUidParseMock := func(id string) (uuid.UUID, error) {
+			return uuid.Nil, common.ErrError
+		}
+		todoRepositoryMock.EXPECT().GetById(gomock.Any(), token.UID).Times(0)
+		ginContextMock.EXPECT().Param("id")
+		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(token, true)
+		errorHandlerMock.EXPECT().HandleAppError(common.ErrError, "", http.StatusBadRequest)
+		getById := GetById(todoRepositoryMock, errorHandlerMock, uUidParseMock)
+		assert.NotNil(t, getById)
+		getById(ginContextMock)
+	})
+
+	t.Run("When TodoRepository returns an Error", func(t *testing.T) {
+		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
+		todoId := uuid.New()
+		token := &auth.Token{UID: "heowh"}
+		uUidParseMock := func(id string) (uuid.UUID, error) {
+			return todoId, nil
+		}
+		todoRepositoryMock.EXPECT().GetById(gomock.Any(), token.UID).Return(nil, common.ErrError)
+		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(token, true)
+		ginContextMock.EXPECT().Param("id")
+		errorHandlerMock.EXPECT().HandleAppError(common.ErrError, "", http.StatusInternalServerError)
+		getById := GetById(todoRepositoryMock, errorHandlerMock, uUidParseMock)
+		assert.NotNil(t, getById)
+		getById(ginContextMock)
+	})
+
+	t.Run("When parse is nil", func(t *testing.T) {
+		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
+		token := &auth.Token{UID: "heowh"}
+		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(token, true)
+		errorHandlerMock.EXPECT().HandleAppError(controllers.ErrParseIsNil, "", http.StatusInternalServerError)
+		getById := GetById(todoRepositoryMock, errorHandlerMock, nil)
+		assert.NotNil(t, getById)
+		getById(ginContextMock)
+	})
+
+	t.Run("When there is no auth token in the web context", func(t *testing.T) {
+		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
+		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(nil, false)
+		errorHandlerMock.EXPECT().HandleAppError(middleware.ErrNoUID, "", http.StatusUnauthorized)
+		getById := GetById(todoRepositoryMock, errorHandlerMock, nil)
+		assert.NotNil(t, getById)
+		getById(ginContextMock)
+	})
+}
+
+func createMocks(t *testing.T) (*common.MockTodoRepository, *common.MockWebContext, *common.MockErrorHandler) {
+	t.Helper()
+	mockCtrl := gomock.NewController(t)
+	return common.NewMockTodoRepository(mockCtrl), common.NewMockWebContext(mockCtrl), common.NewMockErrorHandler(mockCtrl)
 }

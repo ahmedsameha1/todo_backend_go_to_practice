@@ -29,27 +29,6 @@ func Update(todoRepository common.TodoRepository, errorHandler common.ErrorHandl
 	}
 }
 
-func GetById(todoRepository common.TodoRepository, errorHandler common.ErrorHandler,
-	parse func(string) (uuid.UUID, error)) func(common.WebContext) {
-	return func(ctx common.WebContext) {
-		if parse != nil {
-			id, err := parse(ctx.Param("id"))
-			if err != nil {
-				errorHandler.HandleAppError(err, "", http.StatusBadRequest)
-			} else {
-				todo, err := todoRepository.GetById(id)
-				if err != nil {
-					errorHandler.HandleAppError(err, "", http.StatusInternalServerError)
-				} else {
-					ctx.JSON(http.StatusOK, todo)
-				}
-			}
-		} else {
-			errorHandler.HandleAppError(ErrParseIsNil, "", http.StatusInternalServerError)
-		}
-	}
-}
-
 func Delete(todoRepository common.TodoRepository, errorHandler common.ErrorHandler,
 	parse func(string) (uuid.UUID, error)) func(common.WebContext) {
 	return func(ctx common.WebContext) {
