@@ -235,6 +235,61 @@ func TestGetById(t *testing.T) {
 	})
 }
 
+func TestUpdate(t *testing.T) {
+	t.Run("Good case", func(t *testing.T) {
+		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
+		token := &auth.Token{UID: "nfwseo"}
+		update := Update(todoRepositoryMock, errorHandlerMock)
+		assert.NotNil(t, update)
+		done := false
+		todo := model.Todo{Id: uuid.New().String(), Title: "title1",
+			Description: "description1",
+			Done:        &done}
+		todoRepositoryMock.EXPECT().Update(&todo, token.UID).Return(nil)
+		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(token, true)
+		ginContextMock.EXPECT().ShouldBindJSON(gomock.Any()).SetArg(0, todo)
+		ginContextMock.EXPECT().JSON(http.StatusNoContent, map[string]any{})
+		update(ginContextMock)
+	})
+
+	t.Run("When required fields are not present in the web request body", func(t *testing.T) {
+		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
+		token := &auth.Token{UID: "nfwseo"}
+		update := Update(todoRepositoryMock, errorHandlerMock)
+		assert.NotNil(t, update)
+		todoRepositoryMock.EXPECT().Update(gomock.Any(), token.UID).Times(0)
+		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(token, true)
+		ginContextMock.EXPECT().ShouldBindJSON(gomock.Any()).Return(common.ErrError)
+		errorHandlerMock.EXPECT().HandleAppError(common.ErrError, "", http.StatusBadRequest)
+		update(ginContextMock)
+	})
+
+	t.Run("When TodoRepository returns an error", func(t *testing.T) {
+		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
+		token := &auth.Token{UID: "nfwseo"}
+		update := Update(todoRepositoryMock, errorHandlerMock)
+		assert.NotNil(t, update)
+		done := false
+		todo := model.Todo{Id: uuid.New().String(), Title: "title1",
+			Description: "description1",
+			Done:        &done}
+		todoRepositoryMock.EXPECT().Update(&todo, token.UID).Return(common.ErrError)
+		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(token, true)
+		ginContextMock.EXPECT().ShouldBindJSON(gomock.Any()).SetArg(0, todo)
+		errorHandlerMock.EXPECT().HandleAppError(common.ErrError, "", http.StatusInternalServerError)
+		update(ginContextMock)
+	})
+
+	t.Run("When there is no auth token in the web context", func(t *testing.T) {
+		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
+		update := Update(todoRepositoryMock, errorHandlerMock)
+		assert.NotNil(t, update)
+		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(nil, false)
+		errorHandlerMock.EXPECT().HandleAppError(middleware.ErrNoUID, "", http.StatusUnauthorized)
+		update(ginContextMock)
+	})
+}
+
 func createMocks(t *testing.T) (*common.MockTodoRepository, *common.MockWebContext, *common.MockErrorHandler) {
 	t.Helper()
 	mockCtrl := gomock.NewController(t)

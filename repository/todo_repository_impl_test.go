@@ -358,7 +358,7 @@ func TestGetByIdWhenErrReturnAnError(t *testing.T) {
 		dbPoolMock.EXPECT().Query(gomock.Any(), specificTodoQuery, todoId, userId).Return(dbRowsMock, nil),
 		dbRowsMock.EXPECT().Err().Return(common.ErrError),
 	)
-	todo, err := todoRepositoryImpl.GetById(todoId,userId)
+	todo, err := todoRepositoryImpl.GetById(todoId, userId)
 	assert.Nil(t, todo)
 	assert.Equal(t, common.ErrError, err)
 }
@@ -383,12 +383,13 @@ func TestUpdate(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock}
+	userId := uuid.New().String()
 	todoDone1 := false
 	todo := model.Todo{Id: uuid.New().String(), Title: "title1", Description: "description1",
 		Done: &todoDone1, CreatedAt: time.Now()}
 	dbPoolMock.EXPECT().Exec(gomock.Any(), updateQuery, todo.Id, todo.Title,
-		todo.Description, todo.Done).Return(nil, nil)
-	err := todoRepositoryImpl.Update(&todo)
+		todo.Description, todo.Done, todo.CreatedAt, userId).Return(nil, nil)
+	err := todoRepositoryImpl.Update(&todo, userId)
 	assert.NoError(t, err)
 }
 
@@ -396,12 +397,13 @@ func TestUpdateWhenDBPoolReturnAnError(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock}
+	userId := uuid.New().String()
 	todoDone1 := false
 	todo := model.Todo{Id: uuid.New().String(), Title: "title1", Description: "description1",
 		Done: &todoDone1, CreatedAt: time.Now()}
 	dbPoolMock.EXPECT().Exec(gomock.Any(), updateQuery, todo.Id, todo.Title,
-		todo.Description, todo.Done).Return(nil, common.ErrError)
-	err := todoRepositoryImpl.Update(&todo)
+		todo.Description, todo.Done, todo.CreatedAt, userId).Return(nil, common.ErrError)
+	err := todoRepositoryImpl.Update(&todo, userId)
 	assert.Equal(t, common.ErrError, err)
 }
 
@@ -409,12 +411,13 @@ func TestUpdateWhenDBoolIsNil(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: nil}
+	userId := uuid.New().String()
 	todoDone1 := false
 	todo := model.Todo{Id: uuid.New().String(), Title: "title1", Description: "description1",
 		Done: &todoDone1, CreatedAt: time.Now()}
 	dbPoolMock.EXPECT().Exec(gomock.Any(), updateQuery, todo.Id, todo.Title,
-		todo.Description, todo.Done).Times(0)
-	err := todoRepositoryImpl.Update(&todo)
+		todo.Description, todo.Done, todo.CreatedAt, userId).Times(0)
+	err := todoRepositoryImpl.Update(&todo, userId)
 	assert.Equal(t, ErrTodoRepositoryInitialization, err)
 }
 
@@ -422,12 +425,13 @@ func TestUpdateWhenTodoIsInvalid(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock}
+	userId := uuid.New().String()
 	todoDone1 := false
 	invalidTodo := model.Todo{Id: uuid.New().String(), Title: "", Description: "description1",
 		Done: &todoDone1, CreatedAt: time.Now()}
 	dbPoolMock.EXPECT().Exec(gomock.Any(), updateQuery, invalidTodo.Id, invalidTodo.Title,
-		invalidTodo.Description, invalidTodo.Done).Times(0)
-	err := todoRepositoryImpl.Update(&invalidTodo)
+		invalidTodo.Description, invalidTodo.Done, invalidTodo.CreatedAt, userId).Times(0)
+	err := todoRepositoryImpl.Update(&invalidTodo, userId)
 	assert.Equal(t, ErrInvalidTodo, err)
 }
 
@@ -435,12 +439,13 @@ func TestUpdateWhenTodoIsInvalid2(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	dbPoolMock := common.NewMockDBPool(mockCtrl)
 	todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock}
+	userId := uuid.New().String()
 	todoDone1 := false
 	invalidTodo := model.Todo{Id: uuid.New().String(), Title: "", Description: "description1",
 		Done: &todoDone1, CreatedAt: time.Now()}
 	dbPoolMock.EXPECT().Exec(gomock.Any(), updateQuery, invalidTodo.Id, invalidTodo.Title,
-		invalidTodo.Description, invalidTodo.Done).Times(0)
-	err := todoRepositoryImpl.Update(nil)
+		invalidTodo.Description, invalidTodo.Done, invalidTodo.CreatedAt, userId).Times(0)
+	err := todoRepositoryImpl.Update(nil, userId)
 	assert.Equal(t, ErrInvalidTodo, err)
 }
 

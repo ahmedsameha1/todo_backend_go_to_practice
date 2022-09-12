@@ -5,29 +5,12 @@ import (
 	"net/http"
 
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/common"
-	"github.com/ahmedsameha1/todo_backend_go_to_practice/model"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 var ErrParseIsNil error = errors.New("parse is nil")
 
-func Update(todoRepository common.TodoRepository, errorHandler common.ErrorHandler) func(common.WebContext) {
-	return func(ctx common.WebContext) {
-		var todo model.Todo
-		err := ctx.ShouldBindJSON(&todo)
-		if err != nil {
-			errorHandler.HandleAppError(err, "", http.StatusBadRequest)
-		} else {
-			err := todoRepository.Update(&todo)
-			if err != nil {
-				errorHandler.HandleAppError(err, "", http.StatusInternalServerError)
-			} else {
-				ctx.JSON(http.StatusNoContent, gin.H{})
-			}
-		}
-	}
-}
 
 func Delete(todoRepository common.TodoRepository, errorHandler common.ErrorHandler,
 	parse func(string) (uuid.UUID, error)) func(common.WebContext) {

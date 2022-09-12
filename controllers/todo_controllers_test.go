@@ -5,51 +5,10 @@ import (
 	"testing"
 
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/common"
-	"github.com/ahmedsameha1/todo_backend_go_to_practice/model"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
-
-func TestUpdate(t *testing.T) {
-	t.Run("Good case", func(t *testing.T) {
-		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
-		update := Update(todoRepositoryMock, errorHandlerMock)
-		assert.NotNil(t, update)
-		done := false
-		todo := model.Todo{Id: uuid.New().String(), Title: "title1",
-			Description: "description1",
-			Done:        &done}
-		todoRepositoryMock.EXPECT().Update(&todo).Return(nil)
-		ginContextMock.EXPECT().ShouldBindJSON(gomock.Any()).SetArg(0, todo)
-		ginContextMock.EXPECT().JSON(http.StatusNoContent, map[string]any{})
-		update(ginContextMock)
-	})
-
-	t.Run("When required fields are not present in the web request body", func(t *testing.T) {
-		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
-		update := Update(todoRepositoryMock, errorHandlerMock)
-		assert.NotNil(t, update)
-		todoRepositoryMock.EXPECT().Update(gomock.Any()).Times(0)
-		ginContextMock.EXPECT().ShouldBindJSON(gomock.Any()).Return(common.ErrError)
-		errorHandlerMock.EXPECT().HandleAppError(common.ErrError, "", http.StatusBadRequest)
-		update(ginContextMock)
-	})
-
-	t.Run("When TodoRepository returns an error", func(t *testing.T) {
-		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
-		update := Update(todoRepositoryMock, errorHandlerMock)
-		assert.NotNil(t, update)
-		done := false
-		todo := model.Todo{Id: uuid.New().String(), Title: "title1",
-			Description: "description1",
-			Done:        &done}
-		todoRepositoryMock.EXPECT().Update(&todo).Return(common.ErrError)
-		ginContextMock.EXPECT().ShouldBindJSON(gomock.Any()).SetArg(0, todo)
-		errorHandlerMock.EXPECT().HandleAppError(common.ErrError, "", http.StatusInternalServerError)
-		update(ginContextMock)
-	})
-}
 
 func TestDelete(t *testing.T) {
 	t.Run("Good case", func(t *testing.T) {

@@ -14,7 +14,7 @@ func SetTodoRoutes(router common.Router, todoRepository common.TodoRepository,
 	router.POST("/todos", handler.Create(todoRepository, errorHandler))
 	router.GET("/todos", handler.GetAll(todoRepository, errorHandler))
 	router.GET("/todos/:id", handler.GetById(todoRepository, errorHandler, uuid.Parse))
-	router.PUT("/todos", controllers.Update(todoRepository, errorHandler))
+	router.PUT("/todos", handler.Update(todoRepository, errorHandler))
 	router.DELETE("/todos/:id", controllers.Delete(todoRepository, errorHandler, uuid.Parse))
 	return router
 }

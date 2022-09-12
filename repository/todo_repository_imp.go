@@ -14,11 +14,11 @@ var ErrNotFound = errors.New("item is not found")
 var ErrInvalidTodo = errors.New("invalid todo")
 
 const (
-	insertTodoQuery    string = "insert into todo (id, title, description, done, created_at, userId) values ($1::UUID, $2, $3, $4, $5, $6::UUID)"
-	allTodosQuery      string = "select * from todo where user_id = $1::UUID"
-	specificTodoQuery  string = "select * from todo where id = $1::UUID and user_id = $2::UUID"
-	updateQuery        string = "update todo set title = $2, description = $3, done = $4 where id = $1"
-	deleteQuery        string = "delete from todo where id = $1"
+	insertTodoQuery   string = "insert into todo (id, title, description, done, created_at, userId) values ($1::UUID, $2, $3, $4, $5, $6::UUID)"
+	allTodosQuery     string = "select * from todo where user_id = $1::UUID"
+	specificTodoQuery string = "select * from todo where id = $1::UUID and user_id = $2::UUID"
+	updateQuery       string = "update todo set title = $2, description = $3, done = $4, created_at = $5 where id = $1::UUID and user_id = $6::UUID"
+	deleteQuery       string = "delete from todo where id = $1"
 )
 
 type TodoRepositoryImpl struct {
@@ -101,14 +101,15 @@ func (tr TodoRepositoryImpl) GetById(id uuid.UUID, userId string) (*model.Todo, 
 	}
 }
 
-func (tr TodoRepositoryImpl) Update(todo *model.Todo) error {
+func (tr TodoRepositoryImpl) Update(todo *model.Todo, userId string) error {
 	if !model.IsValid(todo) {
 		return ErrInvalidTodo
 	}
 	if tr.DBPool == nil {
 		return ErrTodoRepositoryInitialization
 	}
-	_, err := tr.DBPool.Exec(context.Background(), updateQuery, todo.Id, todo.Title, todo.Description, todo.Done)
+	_, err := tr.DBPool.Exec(context.Background(), updateQuery, todo.Id, todo.Title,
+		todo.Description, todo.Done, todo.CreatedAt, userId)
 	return err
 }
 

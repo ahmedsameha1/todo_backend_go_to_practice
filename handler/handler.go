@@ -8,6 +8,7 @@ import (
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/controllers"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/middleware"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/model"
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
@@ -89,6 +90,29 @@ func GetById(todoRepository common.TodoRepository, errorHandler common.ErrorHand
 				}
 			} else {
 				errorHandler.HandleAppError(controllers.ErrParseIsNil, "", http.StatusInternalServerError)
+			}
+		}
+	}
+}
+
+func Update(todoRepository common.TodoRepository, errorHandler common.ErrorHandler) func(common.WebContext) {
+	return func(ctx common.WebContext) {
+		token, ok := ctx.Get(middleware.AuthToken)
+		if !ok {
+			errorHandler.HandleAppError(middleware.ErrNoUID, "", http.StatusUnauthorized)
+		} else {
+			var todo model.Todo
+			err := ctx.ShouldBindJSON(&todo)
+			if err != nil {
+				errorHandler.HandleAppError(err, "", http.StatusBadRequest)
+			} else {
+				token := token.(*auth.Token)
+				err := todoRepository.Update(&todo, token.UID)
+				if err != nil {
+					errorHandler.HandleAppError(err, "", http.StatusInternalServerError)
+				} else {
+					ctx.JSON(http.StatusNoContent, gin.H{})
+				}
 			}
 		}
 	}
