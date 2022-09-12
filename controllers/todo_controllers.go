@@ -50,27 +50,6 @@ func GetById(todoRepository common.TodoRepository, errorHandler common.ErrorHand
 	}
 }
 
-func GetAllByUserId(todoRepository common.TodoRepository, errorHandler common.ErrorHandler,
-	parse func(string) (uuid.UUID, error)) func(common.WebContext) {
-	return func(ctx common.WebContext) {
-		if parse != nil {
-			id, err := parse(ctx.Param("id"))
-			if err != nil {
-				errorHandler.HandleAppError(err, "", http.StatusBadRequest)
-			} else {
-				todos, err := todoRepository.GetAllByUserId(id)
-				if err != nil {
-					errorHandler.HandleAppError(err, "", http.StatusInternalServerError)
-				} else {
-					ctx.JSON(http.StatusOK, todos)
-				}
-			}
-		} else {
-			errorHandler.HandleAppError(ErrParseIsNil, "", http.StatusInternalServerError)
-		}
-	}
-}
-
 func Delete(todoRepository common.TodoRepository, errorHandler common.ErrorHandler,
 	parse func(string) (uuid.UUID, error)) func(common.WebContext) {
 	return func(ctx common.WebContext) {

@@ -64,63 +64,6 @@ func TestGetById(t *testing.T) {
 	})
 }
 
-func TestGetAllByUserId(t *testing.T) {
-	t.Run("Good case", func(t *testing.T) {
-		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
-		userId := uuid.New()
-		uUidParseMock := func(id string) (uuid.UUID, error) {
-			return userId, nil
-		}
-		getAllByUserId := GetAllByUserId(todoRepositoryMock, errorHandlerMock, uUidParseMock)
-		assert.NotNil(t, getAllByUserId)
-		todo1done := false
-		todo2done := true
-		todo3done := false
-		todos := []model.Todo{{Id: uuid.New().String(), Title: "title1", Description: "description1", Done: &todo1done},
-			{Id: uuid.New().String(), Title: "title2", Description: "description2", Done: &todo2done},
-			{Id: uuid.New().String(), Title: "title3", Description: "description3", Done: &todo3done}}
-		todoRepositoryMock.EXPECT().GetAllByUserId(userId).Return(todos, nil)
-		ginContextMock.EXPECT().Param("id").Return(userId.String())
-		ginContextMock.EXPECT().JSON(http.StatusOK, todos)
-		getAllByUserId(ginContextMock)
-	})
-
-	t.Run("When invalid user id is sent as a path parameter in the url", func(t *testing.T) {
-		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
-		uUidParseMock := func(id string) (uuid.UUID, error) {
-			return uuid.Nil, common.ErrError
-		}
-		todoRepositoryMock.EXPECT().GetAllByUserId(gomock.Any()).Times(0)
-		getAllByUserId := GetAllByUserId(todoRepositoryMock, errorHandlerMock, uUidParseMock)
-		ginContextMock.EXPECT().Param("id")
-		errorHandlerMock.EXPECT().HandleAppError(common.ErrError, "", http.StatusBadRequest)
-		assert.NotNil(t, getAllByUserId)
-		getAllByUserId(ginContextMock)
-	})
-
-	t.Run("When TodoRepository returns an error", func(t *testing.T) {
-		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
-		userId := uuid.New()
-		uUidParseMock := func(id string) (uuid.UUID, error) {
-			return userId, nil
-		}
-		todoRepositoryMock.EXPECT().GetAllByUserId(gomock.Any()).Return(nil, common.ErrError)
-		errorHandlerMock.EXPECT().HandleAppError(common.ErrError, "", http.StatusInternalServerError)
-		ginContextMock.EXPECT().Param("id")
-		getAllByUserId := GetAllByUserId(todoRepositoryMock, errorHandlerMock, uUidParseMock)
-		assert.NotNil(t, getAllByUserId)
-		getAllByUserId(ginContextMock)
-	})
-
-	t.Run("When parse is nil", func(t *testing.T) {
-		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
-		errorHandlerMock.EXPECT().HandleAppError(ErrParseIsNil, "", http.StatusInternalServerError)
-		getAllByUserId := GetAllByUserId(todoRepositoryMock, errorHandlerMock, nil)
-		assert.NotNil(t, getAllByUserId)
-		getAllByUserId(ginContextMock)
-	})
-}
-
 func TestUpdate(t *testing.T) {
 	t.Run("Good case", func(t *testing.T) {
 		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)

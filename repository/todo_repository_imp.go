@@ -17,7 +17,6 @@ const (
 	insertTodoQuery    string = "insert into todo (id, title, description, done, created_at, userId) values ($1::UUID, $2, $3, $4, $5, $6::UUID)"
 	allTodosQuery      string = "select * from todo where user_id = $1::UUID"
 	specificTodoQuery  string = "select * from todo where id = $1"
-	allTodosOfSomeUser string = "select * from todo where user_id = $1"
 	updateQuery        string = "update todo set title = $2, description = $3, done = $4 where id = $1"
 	deleteQuery        string = "delete from todo where id = $1"
 )
@@ -101,37 +100,6 @@ func (tr TodoRepositoryImpl) GetById(id uuid.UUID) (*model.Todo, error) {
 			return nil, ErrNotFound
 		}
 	}
-}
-
-func (tr TodoRepositoryImpl) GetAllByUserId(id uuid.UUID) ([]model.Todo, error) {
-	if tr.DBPool == nil {
-		return nil, ErrTodoRepositoryInitialization
-	}
-	rows, _ := tr.DBPool.Query(context.Background(), allTodosOfSomeUser, id)
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	todos := []model.Todo{}
-	for rows.Next() {
-		var todo model.Todo
-		if err := rows.Scan(&todo.Id); err != nil {
-			return nil, err
-		}
-		if err := rows.Scan(&todo.Title); err != nil {
-			return nil, err
-		}
-		if err := rows.Scan(&todo.Description); err != nil {
-			return nil, err
-		}
-		if err := rows.Scan(&todo.Done); err != nil {
-			return nil, err
-		}
-		if err := rows.Scan(&todo.CreatedAt); err != nil {
-			return nil, err
-		}
-		todos = append(todos, todo)
-	}
-	return todos, nil
 }
 
 func (tr TodoRepositoryImpl) Update(todo *model.Todo) error {
