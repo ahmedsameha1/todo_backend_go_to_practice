@@ -6,7 +6,6 @@ import (
 
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/common"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/model"
-	"github.com/google/uuid"
 )
 
 var ErrTodoRepositoryInitialization error = errors.New("DBPool is nil")
@@ -69,7 +68,7 @@ func (tr TodoRepositoryImpl) GetAll(userId string) ([]model.Todo, error) {
 	return todos, nil
 }
 
-func (tr TodoRepositoryImpl) GetById(id uuid.UUID, userId string) (*model.Todo, error) {
+func (tr TodoRepositoryImpl) GetById(id string, userId string) (*model.Todo, error) {
 	if tr.DBPool == nil {
 		return nil, ErrTodoRepositoryInitialization
 	}

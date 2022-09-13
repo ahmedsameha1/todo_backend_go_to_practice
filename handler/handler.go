@@ -78,7 +78,8 @@ func GetById(todoRepository common.TodoRepository, errorHandler common.ErrorHand
 			errorHandler.HandleAppError(middleware.ErrNoUID, "", http.StatusUnauthorized)
 		} else {
 			if parse != nil {
-				id, err := parse(ctx.Param("id"))
+				id := ctx.Param("id")
+				_, err := parse(id)
 				if err != nil {
 					errorHandler.HandleAppError(err, "", http.StatusBadRequest)
 				} else {

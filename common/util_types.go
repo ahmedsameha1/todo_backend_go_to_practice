@@ -7,7 +7,6 @@ import (
 	"firebase.google.com/go/auth"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/model"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/jackc/pgconn"
 )
 
@@ -28,7 +27,7 @@ type Logger interface {
 type TodoRepository interface {
 	Create(todo *model.Todo, userId string) error
 	GetAll(userId string) ([]model.Todo, error)
-	GetById(id uuid.UUID, userId string) (*model.Todo, error)
+	GetById(id string, userId string) (*model.Todo, error)
 	Update(todo *model.Todo, userId string) error
 	Delete(id string, userId string) error
 }

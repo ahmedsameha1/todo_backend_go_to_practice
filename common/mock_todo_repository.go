@@ -9,7 +9,6 @@ import (
 
 	model "github.com/ahmedsameha1/todo_backend_go_to_practice/model"
 	gomock "github.com/golang/mock/gomock"
-	uuid "github.com/google/uuid"
 )
 
 // MockTodoRepository is a mock of TodoRepository interface.
@@ -79,7 +78,7 @@ func (mr *MockTodoRepositoryMockRecorder) GetAll(arg0 interface{}) *gomock.Call 
 }
 
 // GetById mocks base method.
-func (m *MockTodoRepository) GetById(arg0 uuid.UUID, arg1 string) (*model.Todo, error) {
+func (m *MockTodoRepository) GetById(arg0, arg1 string) (*model.Todo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetById", arg0, arg1)
 	ret0, _ := ret[0].(*model.Todo)

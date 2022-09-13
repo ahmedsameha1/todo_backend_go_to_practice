@@ -175,7 +175,7 @@ func TestGetById(t *testing.T) {
 		}
 		done := false
 		todo := model.Todo{Id: todoId.String(), Title: "title1", Description: "description1", Done: &done, CreatedAt: time.Now()}
-		todoRepositoryMock.EXPECT().GetById(todoId, token.UID).Return(&todo, nil)
+		todoRepositoryMock.EXPECT().GetById(todoId.String(), token.UID).Return(&todo, nil)
 		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(token, true)
 		ginContextMock.EXPECT().Param("id").Return(todoId.String())
 		ginContextMock.EXPECT().JSON(http.StatusOK, &todo)

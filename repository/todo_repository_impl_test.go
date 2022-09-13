@@ -265,9 +265,9 @@ func TestGetById(t *testing.T) {
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
 	todoRepositoryImpl = TodoRepositoryImpl{DBPool: dbPoolMock}
 	userId := uuid.New().String()
-	todoId := uuid.New()
+	todoId := uuid.New().String()
 	todoDone := false
-	wantedTodo := model.Todo{Id: todoId.String(), Title: "title1",
+	wantedTodo := model.Todo{Id: todoId, Title: "title1",
 		Description: "description1", Done: &todoDone, CreatedAt: time.Now()}
 	gomock.InOrder(
 		dbPoolMock.EXPECT().Query(gomock.Any(), specificTodoQuery, todoId, userId).Return(dbRowsMock, nil),
@@ -290,7 +290,7 @@ func TestGetByIdWhenNotFound(t *testing.T) {
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
 	todoRepositoryImpl = TodoRepositoryImpl{DBPool: dbPoolMock}
 	userId := uuid.New().String()
-	todoId := uuid.New()
+	todoId := uuid.New().String()
 	gomock.InOrder(
 		dbPoolMock.EXPECT().Query(gomock.Any(), specificTodoQuery, todoId, userId).Return(dbRowsMock, nil),
 		dbRowsMock.EXPECT().Err().Return(nil),
@@ -307,9 +307,9 @@ func TestGetByIdWhenScanReturnAnError(t *testing.T) {
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
 	todoRepositoryImpl = TodoRepositoryImpl{DBPool: dbPoolMock}
 	userId := uuid.New().String()
-	todoId := uuid.New()
+	todoId := uuid.New().String()
 	todoDone := false
-	wantedTodo := model.Todo{Id: todoId.String(), Title: "title1",
+	wantedTodo := model.Todo{Id: todoId, Title: "title1",
 		Description: "description1", Done: &todoDone, CreatedAt: time.Now()}
 	gomock.InOrder(
 		dbPoolMock.EXPECT().Query(gomock.Any(), specificTodoQuery, todoId, userId).Return(dbRowsMock, nil),
@@ -329,9 +329,9 @@ func TestGetByIdWhenScanReturnAnError2(t *testing.T) {
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
 	todoRepositoryImpl = TodoRepositoryImpl{DBPool: dbPoolMock}
 	userId := uuid.New().String()
-	todoId := uuid.New()
+	todoId := uuid.New().String()
 	todoDone := false
-	wantedTodo := model.Todo{Id: todoId.String(), Title: "title1",
+	wantedTodo := model.Todo{Id: todoId, Title: "title1",
 		Description: "description1", Done: &todoDone, CreatedAt: time.Now()}
 	gomock.InOrder(
 		dbPoolMock.EXPECT().Query(gomock.Any(), specificTodoQuery, todoId, userId).Return(dbRowsMock, nil),
@@ -354,7 +354,7 @@ func TestGetByIdWhenErrReturnAnError(t *testing.T) {
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
 	todoRepositoryImpl = TodoRepositoryImpl{DBPool: dbPoolMock}
 	userId := uuid.New().String()
-	todoId := uuid.New()
+	todoId := uuid.New().String()
 	gomock.InOrder(
 		dbPoolMock.EXPECT().Query(gomock.Any(), specificTodoQuery, todoId, userId).Return(dbRowsMock, nil),
 		dbRowsMock.EXPECT().Err().Return(common.ErrError),
@@ -370,7 +370,7 @@ func TestGetByIdWhenDBPoolIsNil(t *testing.T) {
 	dbRowsMock := common.NewMockDBRows(mockCtrl)
 	todoRepositoryImpl = TodoRepositoryImpl{DBPool: nil}
 	userId := uuid.New().String()
-	todoId := uuid.New()
+	todoId := uuid.New().String()
 	dbPoolMock.EXPECT().Query(gomock.Any(), gomock.Any()).Times(0)
 	dbRowsMock.EXPECT().Err().Times(0)
 	dbRowsMock.EXPECT().Next().Times(0)
