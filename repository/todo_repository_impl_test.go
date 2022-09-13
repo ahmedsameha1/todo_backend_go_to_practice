@@ -454,9 +454,10 @@ func TestDelete(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		dbPoolMock := common.NewMockDBPool(mockCtrl)
 		todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock}
+		userId := uuid.New().String()
 		todoId := uuid.New()
-		dbPoolMock.EXPECT().Exec(gomock.Any(), deleteQuery, todoId).Return([]byte{}, nil)
-		err := todoRepositoryImpl.Delete(todoId)
+		dbPoolMock.EXPECT().Exec(gomock.Any(), deleteQuery, todoId, userId).Return([]byte{}, nil)
+		err := todoRepositoryImpl.Delete(todoId, userId)
 		assert.NoError(t, err)
 	}
 	t.Run("When DBPool.Exec returns no error", func1)
@@ -464,18 +465,20 @@ func TestDelete(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		dbPoolMock := common.NewMockDBPool(mockCtrl)
 		todoRepositoryImpl := TodoRepositoryImpl{DBPool: dbPoolMock}
+		userId := uuid.New().String()
 		todoId := uuid.New()
-		dbPoolMock.EXPECT().Exec(gomock.Any(), deleteQuery, todoId).Return([]byte{}, common.ErrError)
-		err := todoRepositoryImpl.Delete(todoId)
+		dbPoolMock.EXPECT().Exec(gomock.Any(), deleteQuery, todoId, userId).Return([]byte{}, common.ErrError)
+		err := todoRepositoryImpl.Delete(todoId, userId)
 		assert.Equal(t, common.ErrError, err)
 	})
 	t.Run("When DBPool is nil", func(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		dbPoolMock := common.NewMockDBPool(mockCtrl)
 		todoRepositoryImpl := TodoRepositoryImpl{DBPool: nil}
+		userId := uuid.New().String()
 		todoId := uuid.New()
-		dbPoolMock.EXPECT().Exec(gomock.Any(), deleteQuery, todoId).Times(0)
-		err := todoRepositoryImpl.Delete(todoId)
+		dbPoolMock.EXPECT().Exec(gomock.Any(), deleteQuery, todoId, userId).Times(0)
+		err := todoRepositoryImpl.Delete(todoId, userId)
 		assert.Equal(t, ErrTodoRepositoryInitialization, err)
 	})
 }

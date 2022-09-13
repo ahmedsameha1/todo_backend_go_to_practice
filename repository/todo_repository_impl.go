@@ -18,7 +18,7 @@ const (
 	allTodosQuery     string = "select * from todo where user_id = $1::UUID"
 	specificTodoQuery string = "select * from todo where id = $1::UUID and user_id = $2::UUID"
 	updateQuery       string = "update todo set title = $2, description = $3, done = $4, created_at = $5 where id = $1::UUID and user_id = $6::UUID"
-	deleteQuery       string = "delete from todo where id = $1"
+	deleteQuery       string = "delete from todo where id = $1::UUID and user_id = $2::UUID"
 )
 
 type TodoRepositoryImpl struct {
@@ -113,10 +113,10 @@ func (tr TodoRepositoryImpl) Update(todo *model.Todo, userId string) error {
 	return err
 }
 
-func (tr TodoRepositoryImpl) Delete(id uuid.UUID) error {
+func (tr TodoRepositoryImpl) Delete(id uuid.UUID, userId string) error {
 	if tr.DBPool == nil {
 		return ErrTodoRepositoryInitialization
 	}
-	_, err := tr.DBPool.Exec(context.Background(), deleteQuery, id)
+	_, err := tr.DBPool.Exec(context.Background(), deleteQuery, id, userId)
 	return err
 }

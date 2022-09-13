@@ -14,8 +14,6 @@ type Todo struct {
 	Description string `json:"description" binding:"required" validate:"required"`
 	Done        *bool  `json:"done" binding:"required" validate:"required"`
 	CreatedAt time.Time `json:"createdAt" binding:"required" validate:"required"`
-	//TODO UpdatedAt should be explored
-	//TODO userId shoulb be explored
 }
 
 func IsValid(obj interface{}) (ok bool) {

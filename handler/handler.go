@@ -1,16 +1,18 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
 
 	"firebase.google.com/go/auth"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/common"
-	"github.com/ahmedsameha1/todo_backend_go_to_practice/controllers"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/middleware"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/model"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
+
+var ErrParseIsNil error = errors.New("parse is nil")
 
 type ErrorHandlerImpl struct {
 	WebContext common.WebContext
@@ -89,7 +91,7 @@ func GetById(todoRepository common.TodoRepository, errorHandler common.ErrorHand
 					}
 				}
 			} else {
-				errorHandler.HandleAppError(controllers.ErrParseIsNil, "", http.StatusInternalServerError)
+				errorHandler.HandleAppError(ErrParseIsNil, "", http.StatusInternalServerError)
 			}
 		}
 	}
@@ -113,6 +115,34 @@ func Update(todoRepository common.TodoRepository, errorHandler common.ErrorHandl
 				} else {
 					ctx.JSON(http.StatusNoContent, gin.H{})
 				}
+			}
+		}
+	}
+}
+
+
+func Delete(todoRepository common.TodoRepository, errorHandler common.ErrorHandler,
+	parse func(string) (uuid.UUID, error)) func(common.WebContext) {
+	return func(ctx common.WebContext) {
+		token, ok := ctx.Get(middleware.AuthToken)
+		if !ok {
+			errorHandler.HandleAppError(middleware.ErrNoUID, "", http.StatusUnauthorized)
+		} else {
+			if parse != nil {
+				id, err := parse(ctx.Param("id"))
+				if err != nil {
+					errorHandler.HandleAppError(err, "", http.StatusBadRequest)
+				} else {
+					token := token.(*auth.Token)
+					err := todoRepository.Delete(id, token.UID)
+					if err != nil {
+						errorHandler.HandleAppError(err, "", http.StatusInternalServerError)
+					} else {
+						ctx.JSON(http.StatusNoContent, gin.H{})
+					}
+				}
+			} else {
+				errorHandler.HandleAppError(ErrParseIsNil, "", http.StatusInternalServerError)
 			}
 		}
 	}

@@ -4,10 +4,10 @@ import (
 	"errors"
 	"net/http"
 	"testing"
+	"time"
 
 	"firebase.google.com/go/auth"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/common"
-	"github.com/ahmedsameha1/todo_backend_go_to_practice/controllers"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/middleware"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/model"
 	"github.com/gin-gonic/gin"
@@ -46,7 +46,7 @@ func TestCreate(t *testing.T) {
 		token := &auth.Token{UID: "sfweo"}
 		todo := model.Todo{Id: uuid.New().String(), Title: "title1",
 			Description: "description1",
-			Done:        &done}
+			Done:        &done, CreatedAt: time.Now()}
 		ginContextMock.EXPECT().ShouldBindJSON(gomock.Any()).SetArg(0, todo)
 		ginContextMock.EXPECT().JSON(http.StatusOK, todo)
 		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(token, true)
@@ -65,7 +65,7 @@ func TestCreate(t *testing.T) {
 		token := &auth.Token{UID: "sfweo"}
 		todo := model.Todo{Id: uuid.New().String(), Title: "title1",
 			Description: "description1",
-			Done:        &done}
+			Done:        &done, CreatedAt: time.Now()}
 		ginContextMock.EXPECT().ShouldBindJSON(gomock.Any()).SetArg(0, todo)
 		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(token, true)
 		todoRepositoryMock.EXPECT().Create(&todo, token.UID).Return(common.ErrError)
@@ -127,9 +127,9 @@ func TestGetAll(t *testing.T) {
 		todo1done := false
 		todo2done := true
 		todo3done := false
-		todos := []model.Todo{{Id: uuid.New().String(), Title: "title1", Description: "description1", Done: &todo1done},
-			{Id: uuid.New().String(), Title: "title2", Description: "description2", Done: &todo2done},
-			{Id: uuid.New().String(), Title: "title3", Description: "description3", Done: &todo3done}}
+		todos := []model.Todo{{Id: uuid.New().String(), Title: "title1", Description: "description1", Done: &todo1done, CreatedAt: time.Now()},
+			{Id: uuid.New().String(), Title: "title2", Description: "description2", Done: &todo2done, CreatedAt: time.Now()},
+			{Id: uuid.New().String(), Title: "title3", Description: "description3", Done: &todo3done, CreatedAt: time.Now()}}
 		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(token, true)
 		ginContextMock.EXPECT().JSON(http.StatusOK, todos)
 		todoRepositoryMock.EXPECT().GetAll(token.UID).Return(todos, nil)
@@ -174,7 +174,7 @@ func TestGetById(t *testing.T) {
 			return todoId, nil
 		}
 		done := false
-		todo := model.Todo{Id: todoId.String(), Title: "title1", Description: "description1", Done: &done}
+		todo := model.Todo{Id: todoId.String(), Title: "title1", Description: "description1", Done: &done, CreatedAt: time.Now()}
 		todoRepositoryMock.EXPECT().GetById(todoId, token.UID).Return(&todo, nil)
 		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(token, true)
 		ginContextMock.EXPECT().Param("id").Return(todoId.String())
@@ -219,7 +219,7 @@ func TestGetById(t *testing.T) {
 		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
 		token := &auth.Token{UID: "heowh"}
 		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(token, true)
-		errorHandlerMock.EXPECT().HandleAppError(controllers.ErrParseIsNil, "", http.StatusInternalServerError)
+		errorHandlerMock.EXPECT().HandleAppError(ErrParseIsNil, "", http.StatusInternalServerError)
 		getById := GetById(todoRepositoryMock, errorHandlerMock, nil)
 		assert.NotNil(t, getById)
 		getById(ginContextMock)
@@ -244,7 +244,7 @@ func TestUpdate(t *testing.T) {
 		done := false
 		todo := model.Todo{Id: uuid.New().String(), Title: "title1",
 			Description: "description1",
-			Done:        &done}
+			Done:        &done, CreatedAt: time.Now()}
 		todoRepositoryMock.EXPECT().Update(&todo, token.UID).Return(nil)
 		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(token, true)
 		ginContextMock.EXPECT().ShouldBindJSON(gomock.Any()).SetArg(0, todo)
@@ -272,7 +272,7 @@ func TestUpdate(t *testing.T) {
 		done := false
 		todo := model.Todo{Id: uuid.New().String(), Title: "title1",
 			Description: "description1",
-			Done:        &done}
+			Done:        &done, CreatedAt: time.Now()}
 		todoRepositoryMock.EXPECT().Update(&todo, token.UID).Return(common.ErrError)
 		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(token, true)
 		ginContextMock.EXPECT().ShouldBindJSON(gomock.Any()).SetArg(0, todo)
@@ -287,6 +287,72 @@ func TestUpdate(t *testing.T) {
 		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(nil, false)
 		errorHandlerMock.EXPECT().HandleAppError(middleware.ErrNoUID, "", http.StatusUnauthorized)
 		update(ginContextMock)
+	})
+}
+
+func TestDelete(t *testing.T) {
+	t.Run("Good case", func(t *testing.T) {
+		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
+		token := &auth.Token{UID: "oiwhbegfwh"}
+		todoId := uuid.New()
+		uUidParseMock := func(id string) (uuid.UUID, error) {
+			return todoId, nil
+		}
+		todoRepositoryMock.EXPECT().Delete(todoId, token.UID).Return(nil)
+		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(token, true)
+		ginContextMock.EXPECT().Param("id").Return(todoId.String())
+		ginContextMock.EXPECT().JSON(http.StatusNoContent, map[string]any{})
+		delete := Delete(todoRepositoryMock, errorHandlerMock, uUidParseMock)
+		assert.NotNil(t, delete)
+		delete(ginContextMock)
+	})
+
+	t.Run("When invalid todo id is sent as a path parameter in the url", func(t *testing.T) {
+		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
+		token := &auth.Token{UID: "oiwhbegfwh"}
+		uUidParseMock := func(id string) (uuid.UUID, error) {
+			return uuid.Nil, common.ErrError
+		}
+		todoRepositoryMock.EXPECT().Delete(gomock.Any(), token.UID).Times(0)
+		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(token, true)
+		ginContextMock.EXPECT().Param("id")
+		errorHandlerMock.EXPECT().HandleAppError(common.ErrError, "", http.StatusBadRequest)
+		delete := Delete(todoRepositoryMock, errorHandlerMock, uUidParseMock)
+		assert.NotNil(t, delete)
+		delete(ginContextMock)
+	})
+
+	t.Run("When TodoRepository return an error", func(t *testing.T) {
+		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
+		token := &auth.Token{UID: "oiwhbegfwh"}
+		todoId := uuid.New()
+		uUidParseMock := func(id string) (uuid.UUID, error) {
+			return todoId, nil
+		}
+		todoRepositoryMock.EXPECT().Delete(todoId, token.UID).Return(common.ErrError)
+		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(token, true)
+		ginContextMock.EXPECT().Param("id").Return(todoId.String())
+		errorHandlerMock.EXPECT().HandleAppError(common.ErrError, "", http.StatusInternalServerError)
+		delete := Delete(todoRepositoryMock, errorHandlerMock, uUidParseMock)
+		assert.NotNil(t, delete)
+		delete(ginContextMock)
+	})
+
+	t.Run("When parse is nil", func(t *testing.T) {
+		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
+		token := &auth.Token{UID: "oiwhbegfwh"}
+		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(token, true)
+		errorHandlerMock.EXPECT().HandleAppError(ErrParseIsNil, "", http.StatusInternalServerError)
+		delete := Delete(todoRepositoryMock, errorHandlerMock, nil)
+		delete(ginContextMock)
+	})
+
+	t.Run("When there is no auth token in the web context", func(t *testing.T) {
+		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
+		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(nil, false)
+		errorHandlerMock.EXPECT().HandleAppError(middleware.ErrNoUID, "", http.StatusUnauthorized)
+		delete := Delete(todoRepositoryMock, errorHandlerMock, nil)
+		delete(ginContextMock)
 	})
 }
 
