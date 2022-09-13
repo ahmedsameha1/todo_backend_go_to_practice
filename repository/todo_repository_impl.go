@@ -113,7 +113,7 @@ func (tr TodoRepositoryImpl) Update(todo *model.Todo, userId string) error {
 	return err
 }
 
-func (tr TodoRepositoryImpl) Delete(id uuid.UUID, userId string) error {
+func (tr TodoRepositoryImpl) Delete(id string, userId string) error {
 	if tr.DBPool == nil {
 		return ErrTodoRepositoryInitialization
 	}

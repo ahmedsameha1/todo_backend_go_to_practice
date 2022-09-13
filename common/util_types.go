@@ -30,7 +30,7 @@ type TodoRepository interface {
 	GetAll(userId string) ([]model.Todo, error)
 	GetById(id uuid.UUID, userId string) (*model.Todo, error)
 	Update(todo *model.Todo, userId string) error
-	Delete(id uuid.UUID, userId string) error
+	Delete(id string, userId string) error
 }
 
 type DBPool interface {

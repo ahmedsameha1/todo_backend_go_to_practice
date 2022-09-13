@@ -120,7 +120,6 @@ func Update(todoRepository common.TodoRepository, errorHandler common.ErrorHandl
 	}
 }
 
-
 func Delete(todoRepository common.TodoRepository, errorHandler common.ErrorHandler,
 	parse func(string) (uuid.UUID, error)) func(common.WebContext) {
 	return func(ctx common.WebContext) {
@@ -129,7 +128,8 @@ func Delete(todoRepository common.TodoRepository, errorHandler common.ErrorHandl
 			errorHandler.HandleAppError(middleware.ErrNoUID, "", http.StatusUnauthorized)
 		} else {
 			if parse != nil {
-				id, err := parse(ctx.Param("id"))
+				id := ctx.Param("id")
+				_, err := parse(id)
 				if err != nil {
 					errorHandler.HandleAppError(err, "", http.StatusBadRequest)
 				} else {

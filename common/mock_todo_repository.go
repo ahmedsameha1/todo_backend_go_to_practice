@@ -50,7 +50,7 @@ func (mr *MockTodoRepositoryMockRecorder) Create(arg0, arg1 interface{}) *gomock
 }
 
 // Delete mocks base method.
-func (m *MockTodoRepository) Delete(arg0 uuid.UUID, arg1 string) error {
+func (m *MockTodoRepository) Delete(arg0, arg1 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Delete", arg0, arg1)
 	ret0, _ := ret[0].(error)

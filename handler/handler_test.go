@@ -298,7 +298,7 @@ func TestDelete(t *testing.T) {
 		uUidParseMock := func(id string) (uuid.UUID, error) {
 			return todoId, nil
 		}
-		todoRepositoryMock.EXPECT().Delete(todoId, token.UID).Return(nil)
+		todoRepositoryMock.EXPECT().Delete(todoId.String(), token.UID).Return(nil)
 		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(token, true)
 		ginContextMock.EXPECT().Param("id").Return(todoId.String())
 		ginContextMock.EXPECT().JSON(http.StatusNoContent, map[string]any{})
@@ -329,7 +329,7 @@ func TestDelete(t *testing.T) {
 		uUidParseMock := func(id string) (uuid.UUID, error) {
 			return todoId, nil
 		}
-		todoRepositoryMock.EXPECT().Delete(todoId, token.UID).Return(common.ErrError)
+		todoRepositoryMock.EXPECT().Delete(todoId.String(), token.UID).Return(common.ErrError)
 		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(token, true)
 		ginContextMock.EXPECT().Param("id").Return(todoId.String())
 		errorHandlerMock.EXPECT().HandleAppError(common.ErrError, "", http.StatusInternalServerError)
