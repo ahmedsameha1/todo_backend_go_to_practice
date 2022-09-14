@@ -22,21 +22,21 @@ var ErrNoUID error = errors.New("there is no UID in the token")
 func GetAuthMiddleware(authClient common.AuthClient, errorHandler common.ErrorHandler) func(common.WebContext) {
 	return func(ctx common.WebContext) {
 		if authClient == nil {
-			errorHandler.HandleAppError(ErrAuthClientIsNil, "", http.StatusInternalServerError)
+			errorHandler.HandleAppError(ctx, ErrAuthClientIsNil, http.StatusInternalServerError)
 		} else {
 			authorizationHeader := ctx.GetHeader(AUTHORIZATION)
 			if authorizationHeader == "" {
-				errorHandler.HandleAppError(ErrNoAuthorizationHeader, "", http.StatusUnauthorized)
+				errorHandler.HandleAppError(ctx, ErrNoAuthorizationHeader, http.StatusUnauthorized)
 			} else if !strings.HasPrefix(authorizationHeader, BEARER) {
-				errorHandler.HandleAppError(ErrAuthorizationHeaderDoesntStartWithBearer, "", http.StatusUnauthorized)
+				errorHandler.HandleAppError(ctx, ErrAuthorizationHeaderDoesntStartWithBearer, http.StatusUnauthorized)
 			} else {
 				token := strings.Replace(authorizationHeader, BEARER, "", 1)
 				authToken, err := authClient.VerifyIDToken(context.Background(), token)
 				if err != nil {
-					errorHandler.HandleAppError(err, "", http.StatusUnauthorized)
+					errorHandler.HandleAppError(ctx, err, http.StatusUnauthorized)
 				} else {
 					if authToken.UID == "" {
-						errorHandler.HandleAppError(ErrNoUID, "", http.StatusUnauthorized)
+						errorHandler.HandleAppError(ctx, ErrNoUID, http.StatusUnauthorized)
 					} else {
 						ctx.Set(AuthToken, authToken)
 						ctx.Next()

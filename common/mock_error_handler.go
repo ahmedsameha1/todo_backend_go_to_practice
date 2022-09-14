@@ -34,7 +34,7 @@ func (m *MockErrorHandler) EXPECT() *MockErrorHandlerMockRecorder {
 }
 
 // HandleAppError mocks base method.
-func (m *MockErrorHandler) HandleAppError(arg0 error, arg1 string, arg2 int) {
+func (m *MockErrorHandler) HandleAppError(arg0 WebContext, arg1 error, arg2 int) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "HandleAppError", arg0, arg1, arg2)
 }

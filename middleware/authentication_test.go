@@ -13,8 +13,8 @@ import (
 func TestGetAuthMiddleware(t *testing.T) {
 	t.Run("There is no Authorization header in the request", func(t *testing.T) {
 		firebaseAuthClientMock, ginContextMock, errorHandlerMock := CreateMocks(t)
-		errorHandlerMock.EXPECT().HandleAppError(ErrNoAuthorizationHeader,
-			"", http.StatusUnauthorized)
+		errorHandlerMock.EXPECT().HandleAppError(ginContextMock, ErrNoAuthorizationHeader,
+			http.StatusUnauthorized)
 		firebaseAuthClientMock.EXPECT().VerifyIDToken(gomock.Any(), gomock.Any()).Times(0)
 		ginContextMock.EXPECT().GetHeader(AUTHORIZATION).Return("")
 		authMiddleware := GetAuthMiddleware(firebaseAuthClientMock, errorHandlerMock)
@@ -24,8 +24,8 @@ func TestGetAuthMiddleware(t *testing.T) {
 
 	t.Run(`The Authorization header doen't start with "Bearer "`, func(t *testing.T) {
 		firebaseAuthClientMock, ginContextMock, errorHandlerMock := CreateMocks(t)
-		errorHandlerMock.EXPECT().HandleAppError(ErrAuthorizationHeaderDoesntStartWithBearer,
-			"", http.StatusUnauthorized)
+		errorHandlerMock.EXPECT().HandleAppError(ginContextMock, ErrAuthorizationHeaderDoesntStartWithBearer,
+			http.StatusUnauthorized)
 		ginContextMock.EXPECT().GetHeader(AUTHORIZATION).Return("ewhgfwwhgerwhg9")
 		firebaseAuthClientMock.EXPECT().VerifyIDToken(gomock.Any(), gomock.Any()).Times(0)
 		authMiddleware := GetAuthMiddleware(firebaseAuthClientMock, errorHandlerMock)
@@ -35,8 +35,8 @@ func TestGetAuthMiddleware(t *testing.T) {
 
 	t.Run(`Firebase app auth client is nil`, func(t *testing.T) {
 		_, ginContextMock, errorHandlerMock := CreateMocks(t)
-		errorHandlerMock.EXPECT().HandleAppError(ErrAuthClientIsNil,
-			"", http.StatusInternalServerError)
+		errorHandlerMock.EXPECT().HandleAppError(ginContextMock, ErrAuthClientIsNil,
+			http.StatusInternalServerError)
 		authMiddleware := GetAuthMiddleware(nil, errorHandlerMock)
 		assert.NotNil(t, authMiddleware)
 		authMiddleware(ginContextMock)
@@ -46,8 +46,8 @@ func TestGetAuthMiddleware(t *testing.T) {
 		firebaseAuthClientMock, ginContextMock, errorHandlerMock := CreateMocks(t)
 		ha := "eyJhbGciOiJ"
 		ginContextMock.EXPECT().GetHeader(AUTHORIZATION).Return(BEARER + ha)
-		errorHandlerMock.EXPECT().HandleAppError(common.ErrError,
-			"", http.StatusUnauthorized)
+		errorHandlerMock.EXPECT().HandleAppError(ginContextMock, common.ErrError,
+			http.StatusUnauthorized)
 		firebaseAuthClientMock.EXPECT().VerifyIDToken(gomock.Any(),
 			ha).
 			Return(nil, common.ErrError)
@@ -61,7 +61,7 @@ func TestGetAuthMiddleware(t *testing.T) {
 		ha := "eyJhbGciOiJ"
 		tokeN := new(auth.Token)
 		ginContextMock.EXPECT().GetHeader(AUTHORIZATION).Return(BEARER + ha)
-		errorHandlerMock.EXPECT().HandleAppError(ErrNoUID, "", http.StatusUnauthorized)
+		errorHandlerMock.EXPECT().HandleAppError(ginContextMock, ErrNoUID, http.StatusUnauthorized)
 		firebaseAuthClientMock.EXPECT().VerifyIDToken(gomock.Any(),
 			ha).
 			Return(tokeN, nil)

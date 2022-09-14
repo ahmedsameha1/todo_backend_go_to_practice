@@ -44,7 +44,7 @@ type DBRows interface {
 }
 
 type ErrorHandler interface {
-	HandleAppError(error, string, int)
+	HandleAppError(WebContext, error, int)
 }
 
 type AuthClient interface {
