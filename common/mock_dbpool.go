@@ -9,7 +9,8 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	pgconn "github.com/jackc/pgconn"
+	pgx "github.com/jackc/pgx/v5"
+	pgconn "github.com/jackc/pgx/v5/pgconn"
 )
 
 // MockDBPool is a mock of DBPool interface.
@@ -56,14 +57,14 @@ func (mr *MockDBPoolMockRecorder) Exec(arg0, arg1 interface{}, arg2 ...interface
 }
 
 // Query mocks base method.
-func (m *MockDBPool) Query(arg0 context.Context, arg1 string, arg2 ...interface{}) (DBRows, error) {
+func (m *MockDBPool) Query(arg0 context.Context, arg1 string, arg2 ...interface{}) (pgx.Rows, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{arg0, arg1}
 	for _, a := range arg2 {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "Query", varargs...)
-	ret0, _ := ret[0].(DBRows)
+	ret0, _ := ret[0].(pgx.Rows)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

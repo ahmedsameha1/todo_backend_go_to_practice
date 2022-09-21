@@ -7,7 +7,6 @@ import (
 	"firebase.google.com/go/auth"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/model"
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgconn"
 )
 
 var ErrError error = errors.New("an error")
@@ -30,17 +29,6 @@ type TodoRepository interface {
 	GetById(id string, userId string) (*model.Todo, error)
 	Update(todo *model.Todo, userId string) error
 	Delete(id string, userId string) error
-}
-
-type DBPool interface {
-	Exec(ctx context.Context, sql string, arguments ...interface{}) (pgconn.CommandTag, error)
-	Query(ctx context.Context, sql string, args ...interface{}) (DBRows, error)
-}
-
-type DBRows interface {
-	Err() error
-	Next() bool
-	Scan(dest ...interface{}) (err error)
 }
 
 type ErrorHandler interface {
