@@ -3,6 +3,6 @@ create table todo (
     title varchar(500) not null,
     description varchar(10000) not null,
     done bool not null,
-    created_at timestamp not null,
+    created_at timestamptz not null,
     user_id uuid not null
 );
