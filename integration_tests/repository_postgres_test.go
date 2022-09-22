@@ -164,4 +164,39 @@ func TestTodoRepositoryImplOnPostgres(t *testing.T) {
 		assert.Equal(t, expectedTodo2.Done, returnedTodo.Done)
 		assert.Equal(t, expectedTodo2.CreatedAt, returnedTodo.CreatedAt.UTC())
 	})
+
+	t.Run("Test todo update: todo id is not the same", func(t *testing.T) {
+		todoDone1 := true
+		ti1, _ := time.Parse(time.RFC3339, "2022-09-21T14:07:05.768Z")
+		todoId1 := uuid.New().String()
+		expectedTodo1 := model.Todo{
+			Id:          todoId1,
+			Title:       "title1",
+			Description: "description1",
+			Done:        &todoDone1,
+			CreatedAt:   ti1,
+		}
+		userId := uuid.New().String()
+		err := todoRepository.Create(&expectedTodo1, userId)
+		assert.NoError(t, err)
+		todoDone2 := false
+		ti2, _ := time.Parse(time.RFC3339, "2021-09-21T14:07:05.768Z")
+		todoId2 := uuid.New().String()
+		expectedTodo2 := model.Todo{
+			Id:          todoId2,
+			Title:       "title1updated",
+			Description: "description1updated",
+			Done:        &todoDone2,
+			CreatedAt:   ti2,
+		}
+		err = todoRepository.Update(&expectedTodo2, userId)
+		assert.NoError(t, err)
+		returnedTodo, err := todoRepository.GetById(todoId1, userId)
+		assert.NoError(t, err)
+		assert.Equal(t, expectedTodo1.Id, returnedTodo.Id)
+		assert.Equal(t, expectedTodo1.Title, returnedTodo.Title)
+		assert.Equal(t, expectedTodo1.Description, returnedTodo.Description)
+		assert.Equal(t, expectedTodo1.Done, returnedTodo.Done)
+		assert.Equal(t, expectedTodo1.CreatedAt, returnedTodo.CreatedAt.UTC())
+	})
 }
