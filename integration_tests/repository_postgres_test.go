@@ -71,7 +71,7 @@ func TestMain(m *testing.M) {
 
 }
 
-func TestTodoRepositoryImplOnPostgres(t *testing.T) {
+func TestTodoRepositoryImplOnPostgres1(t *testing.T) {
 	t.Run("Test todo creation", func(t *testing.T) {
 		todoDone := false
 		ti, _ := time.Parse(time.RFC3339, "2022-09-21T14:07:05.768Z")
@@ -95,7 +95,9 @@ func TestTodoRepositoryImplOnPostgres(t *testing.T) {
 		assert.Equal(t, expectedTodo.Done, returnedTodo.Done)
 		assert.Equal(t, expectedTodo.CreatedAt, returnedTodo.CreatedAt.UTC())
 	})
+}
 
+func TestTodoRepositoryImplOnPostgres2(t *testing.T) {
 	t.Run("Test todo update: user id is not the same", func(t *testing.T) {
 		todoDone1 := true
 		ti1, _ := time.Parse(time.RFC3339, "2022-09-21T14:07:05.768Z")
@@ -130,7 +132,9 @@ func TestTodoRepositoryImplOnPostgres(t *testing.T) {
 		assert.Equal(t, expectedTodo1.Done, returnedTodo.Done)
 		assert.Equal(t, expectedTodo1.CreatedAt, returnedTodo.CreatedAt.UTC())
 	})
+}
 
+func TestTodoRepositoryImplOnPostgres3(t *testing.T) {
 	t.Run("Test todo update: user id is the same", func(t *testing.T) {
 		todoDone1 := true
 		ti1, _ := time.Parse(time.RFC3339, "2022-09-21T14:07:05.768Z")
@@ -164,7 +168,9 @@ func TestTodoRepositoryImplOnPostgres(t *testing.T) {
 		assert.Equal(t, expectedTodo2.Done, returnedTodo.Done)
 		assert.Equal(t, expectedTodo2.CreatedAt, returnedTodo.CreatedAt.UTC())
 	})
+}
 
+func TestTodoRepositoryImplOnPostgres4(t *testing.T) {
 	t.Run("Test todo update: todo id is not the same", func(t *testing.T) {
 		todoDone1 := true
 		ti1, _ := time.Parse(time.RFC3339, "2022-09-21T14:07:05.768Z")
@@ -198,5 +204,29 @@ func TestTodoRepositoryImplOnPostgres(t *testing.T) {
 		assert.Equal(t, expectedTodo1.Description, returnedTodo.Description)
 		assert.Equal(t, expectedTodo1.Done, returnedTodo.Done)
 		assert.Equal(t, expectedTodo1.CreatedAt, returnedTodo.CreatedAt.UTC())
+	})
+}
+
+func TestTodoRepositoryImplOnPostgres5(t *testing.T) {
+	t.Run("Test todo deletion: user id is not the same", func(t *testing.T) {
+		todoDone := true
+		ti, _ := time.Parse(time.RFC3339, "2022-09-21T14:07:05.768Z")
+		todoId := uuid.New().String()
+		expectedTodo := model.Todo{
+			Id:          todoId,
+			Title:       "title1",
+			Description: "description1",
+			Done:        &todoDone,
+			CreatedAt:   ti,
+		}
+		userId1 := uuid.New().String()
+		userId2 := uuid.New().String()
+		err := todoRepository.Create(&expectedTodo, userId1)
+		assert.NoError(t, err)
+		err = todoRepository.Delete(todoId, userId2)
+		assert.NoError(t, err)
+		returnedTodo, err := todoRepository.GetById(todoId, userId1)
+		assert.NoError(t, err)
+		assert.NotNil(t, returnedTodo)
 	})
 }
