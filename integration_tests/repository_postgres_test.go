@@ -3,7 +3,6 @@ package integration_tests
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"testing"
 	"time"
@@ -19,9 +18,7 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-var todoRepository common.TodoRepository
-
-func TestMain(m *testing.M) {
+func setupPostgres(t *testing.T) (tc.Container, common.TodoRepository) {
 	postgresPort := nat.Port("5432/tcp")
 	postgres, err := tc.GenericContainer(context.Background(),
 		tc.GenericContainerRequest{
@@ -40,39 +37,43 @@ func TestMain(m *testing.M) {
 			Started: true,
 		})
 	if err != nil {
-		log.Fatal("start:", err)
+		t.Fatal(err)
+		return nil, nil
 	}
 
 	hostPort, err := postgres.MappedPort(context.Background(), postgresPort)
 	if err != nil {
-		log.Fatal("map:", err)
+		t.Fatal(err)
+		return nil, nil
 	}
 
 	postgresUrl := fmt.Sprintf("postgres://user:password@localhost:%s?sslmode=disable", hostPort.Port())
 
 	dbpool, err := pgxpool.New(context.Background(), postgresUrl)
 	if err != nil {
-		log.Fatal("Unable to connect to the database", err)
+		t.Fatal(err)
+		return nil, nil
 	}
 
 	byteArray, err := os.ReadFile("../schemas/postgres_v1.sql")
 	if err != nil {
-		log.Fatal("read schema error", err)
+		t.Fatal(err)
+		return nil, nil
 	}
 
 	_, err = dbpool.Exec(context.Background(), string(byteArray))
 	if err != nil {
-		log.Fatal("create schema error", err)
+		t.Fatal(err)
+		return nil, nil
 	}
 
-	todoRepository = repository.TodoRepositoryImpl{DBPool: *dbpool}
-
-	os.Exit(m.Run())
-
+	return postgres, repository.TodoRepositoryImpl{DBPool: *dbpool}
 }
 
 func TestTodoRepositoryImplOnPostgres1(t *testing.T) {
 	t.Run("Test todo creation", func(t *testing.T) {
+		container, todoRepository := setupPostgres(t)
+		defer container.Terminate(context.Background())
 		todoDone := false
 		ti, _ := time.Parse(time.RFC3339, "2022-09-21T14:07:05.768Z")
 		expectedTodo := model.Todo{
@@ -99,6 +100,8 @@ func TestTodoRepositoryImplOnPostgres1(t *testing.T) {
 
 func TestTodoRepositoryImplOnPostgres2(t *testing.T) {
 	t.Run("Test todo update: user id is not the same", func(t *testing.T) {
+		container, todoRepository := setupPostgres(t)
+		defer container.Terminate(context.Background())
 		todoDone1 := true
 		ti1, _ := time.Parse(time.RFC3339, "2022-09-21T14:07:05.768Z")
 		todoId := uuid.New().String()
@@ -136,6 +139,8 @@ func TestTodoRepositoryImplOnPostgres2(t *testing.T) {
 
 func TestTodoRepositoryImplOnPostgres3(t *testing.T) {
 	t.Run("Test todo update: user id is the same", func(t *testing.T) {
+		container, todoRepository := setupPostgres(t)
+		defer container.Terminate(context.Background())
 		todoDone1 := true
 		ti1, _ := time.Parse(time.RFC3339, "2022-09-21T14:07:05.768Z")
 		todoId := uuid.New().String()
@@ -172,6 +177,8 @@ func TestTodoRepositoryImplOnPostgres3(t *testing.T) {
 
 func TestTodoRepositoryImplOnPostgres4(t *testing.T) {
 	t.Run("Test todo update: todo id is not the same", func(t *testing.T) {
+		container, todoRepository := setupPostgres(t)
+		defer container.Terminate(context.Background())
 		todoDone1 := true
 		ti1, _ := time.Parse(time.RFC3339, "2022-09-21T14:07:05.768Z")
 		todoId1 := uuid.New().String()
@@ -209,6 +216,8 @@ func TestTodoRepositoryImplOnPostgres4(t *testing.T) {
 
 func TestTodoRepositoryImplOnPostgres5(t *testing.T) {
 	t.Run("Test todo deletion: user id is not the same", func(t *testing.T) {
+		container, todoRepository := setupPostgres(t)
+		defer container.Terminate(context.Background())
 		todoDone := true
 		ti, _ := time.Parse(time.RFC3339, "2022-09-21T14:07:05.768Z")
 		todoId := uuid.New().String()
@@ -228,5 +237,30 @@ func TestTodoRepositoryImplOnPostgres5(t *testing.T) {
 		returnedTodo, err := todoRepository.GetById(todoId, userId1)
 		assert.NoError(t, err)
 		assert.NotNil(t, returnedTodo)
+	})
+}
+
+func TestTodoRepositoryImplOnPostgres6(t *testing.T) {
+	t.Run("Test todo deletion: Good case", func(t *testing.T) {
+		container, todoRepository := setupPostgres(t)
+		defer container.Terminate(context.Background())
+		todoDone := true
+		ti, _ := time.Parse(time.RFC3339, "2022-09-21T14:07:05.768Z")
+		todoId := uuid.New().String()
+		expectedTodo := model.Todo{
+			Id:          todoId,
+			Title:       "title1",
+			Description: "description1",
+			Done:        &todoDone,
+			CreatedAt:   ti,
+		}
+		userId := uuid.New().String()
+		err := todoRepository.Create(&expectedTodo, userId)
+		assert.NoError(t, err)
+		err = todoRepository.Delete(todoId, userId)
+		assert.NoError(t, err)
+		returnedTodo, err := todoRepository.GetById(todoId, userId)
+		assert.Equal(t, repository.ErrNotFound, err)
+		assert.Nil(t, returnedTodo)
 	})
 }
