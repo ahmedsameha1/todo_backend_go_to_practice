@@ -18,15 +18,9 @@ type ErrorHandlerImpl struct {
 	Logger     common.Logger
 }
 
-type AppError struct {
-	Error   string `json:"error"`
-	Message string `json:"message,omitempty"`
-}
-
-func (eh ErrorHandlerImpl) HandleAppError(webContext common.WebContext, someError error, messege string, code int) {
-	errObj := AppError{Error: someError.Error(), Message: messege}
-	eh.Logger.Printf("%v\n", errObj)
-	webContext.JSON(code, errObj)
+func (eh ErrorHandlerImpl) HandleAppError(webContext common.WebContext, someError error, code int) {
+	eh.Logger.Printf("%v\n", someError)
+	webContext.JSON(code, someError)
 }
 
 func Create(todoRepository common.TodoRepository, errorHandler common.ErrorHandler) func(common.WebContext) {

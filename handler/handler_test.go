@@ -23,13 +23,11 @@ func TestHandleError(t *testing.T) {
 		loggerMock := common.NewMockLogger(mockCtrl)
 		ginContextMock := common.NewMockWebContext(mockCtrl)
 		handlerErr := errors.New("handlerErr1")
-		message := "message1"
 		code := 404
-		errObj := AppError{Error: handlerErr.Error(), Message: message}
-		loggerMock.EXPECT().Printf("%v\n", errObj)
-		ginContextMock.EXPECT().JSON(code, errObj)
+		loggerMock.EXPECT().Printf("%v\n", handlerErr)
+		ginContextMock.EXPECT().JSON(code, handlerErr)
 		errorHandlerImpl := ErrorHandlerImpl{ Logger: loggerMock}
-		errorHandlerImpl.HandleAppError(ginContextMock, handlerErr, message, code)
+		errorHandlerImpl.HandleAppError(ginContextMock, handlerErr, code)
 	})
 
 	t.Run("When WebContext or Logger is nil, I trust that the app will panic!!", func(t *testing.T) {})
