@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	"firebase.google.com/go/auth"
+	"firebase.google.com/go/v4/auth"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/common"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
