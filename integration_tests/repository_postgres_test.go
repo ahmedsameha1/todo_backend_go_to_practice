@@ -2,87 +2,19 @@ package integration_tests
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
-	"os"
 	"testing"
 	"time"
 
-	"github.com/ahmedsameha1/todo_backend_go_to_practice/common"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/model"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/repository"
-	"github.com/docker/go-connections/nat"
 	"github.com/google/uuid"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/stretchr/testify/assert"
-	tc "github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/wait"
 )
-
-func setupPostgres(t *testing.T) (tc.Container, common.TodoRepository) {
-	dbname, user, password := "testdb", "user", "password"
-	postgresPort := nat.Port("5432/tcp")
-	postgres, err := tc.GenericContainer(context.Background(),
-		tc.GenericContainerRequest{
-			ContainerRequest: tc.ContainerRequest{
-				Image:        "postgres:14.5",
-				ExposedPorts: []string{postgresPort.Port()},
-				Env: map[string]string{
-					"POSTGRES_PASSWORD": password,
-					"POSTGRES_USER":     user,
-					"POSTGRES_DB":       dbname,
-				},
-				WaitingFor: wait.ForAll(
-					wait.ForLog("database system is ready to accept connections"),
-					wait.ForListeningPort(postgresPort),
-				),
-			},
-			Started: true,
-		})
-	if err != nil {
-		t.Fatal(err)
-		return nil, nil
-	}
-
-	hostPort, err := postgres.MappedPort(context.Background(), postgresPort)
-	if err != nil {
-		t.Fatal(err)
-		return nil, nil
-	}
-
-	postgresDataSourceName := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		"localhost", hostPort.Port(), user, password, dbname)
-
-	dbpool, err := sql.Open("pgx", postgresDataSourceName)
-	if err != nil {
-		t.Fatal(err)
-		return nil, nil
-	}
-
-	byteArray, err := os.ReadFile("../schemas/postgres_v1.sql")
-	if err != nil {
-		t.Fatal(err)
-		return nil, nil
-	}
-
-	_, err = dbpool.Exec(string(byteArray))
-	if err != nil {
-		t.Fatal(err)
-		return nil, nil
-	}
-
-	todoRepository, err := repository.GetTodoRepository(dbpool)
-	if err != nil {
-		t.Fatal(err)
-		return nil, nil
-	}
-
-	return postgres, todoRepository
-}
 
 func TestTodoRepositoryImplOnPostgres1(t *testing.T) {
 	t.Run("Test todo creation", func(t *testing.T) {
-		container, todoRepository := setupPostgres(t)
+		container, todoRepository := repository.SetupPostgres(t)
 		defer container.Terminate(context.Background())
 		todoDone := false
 		ti, _ := time.Parse(time.RFC3339, "2022-09-21T14:07:05.768Z")
@@ -110,7 +42,7 @@ func TestTodoRepositoryImplOnPostgres1(t *testing.T) {
 
 func TestTodoRepositoryImplOnPostgres2(t *testing.T) {
 	t.Run("Test todo update: user id is not the same", func(t *testing.T) {
-		container, todoRepository := setupPostgres(t)
+		container, todoRepository := repository.SetupPostgres(t)
 		defer container.Terminate(context.Background())
 		todoDone1 := true
 		ti1, _ := time.Parse(time.RFC3339, "2022-09-21T14:07:05.768Z")
@@ -149,7 +81,7 @@ func TestTodoRepositoryImplOnPostgres2(t *testing.T) {
 
 func TestTodoRepositoryImplOnPostgres3(t *testing.T) {
 	t.Run("Test todo update: todo id is not the same", func(t *testing.T) {
-		container, todoRepository := setupPostgres(t)
+		container, todoRepository := repository.SetupPostgres(t)
 		defer container.Terminate(context.Background())
 		todoDone1 := true
 		ti1, _ := time.Parse(time.RFC3339, "2022-09-21T14:07:05.768Z")
@@ -188,7 +120,7 @@ func TestTodoRepositoryImplOnPostgres3(t *testing.T) {
 
 func TestTodoRepositoryImplOnPostgres4(t *testing.T) {
 	t.Run("Test todo update: Good case", func(t *testing.T) {
-		container, todoRepository := setupPostgres(t)
+		container, todoRepository := repository.SetupPostgres(t)
 		defer container.Terminate(context.Background())
 		todoDone1 := true
 		ti1, _ := time.Parse(time.RFC3339, "2022-09-21T14:07:05.768Z")
@@ -226,7 +158,7 @@ func TestTodoRepositoryImplOnPostgres4(t *testing.T) {
 
 func TestTodoRepositoryImplOnPostgres5(t *testing.T) {
 	t.Run("Test todo deletion: user id is not the same", func(t *testing.T) {
-		container, todoRepository := setupPostgres(t)
+		container, todoRepository := repository.SetupPostgres(t)
 		defer container.Terminate(context.Background())
 		todoDone := true
 		ti, _ := time.Parse(time.RFC3339, "2022-09-21T14:07:05.768Z")
@@ -252,7 +184,7 @@ func TestTodoRepositoryImplOnPostgres5(t *testing.T) {
 
 func TestTodoRepositoryImplOnPostgres6(t *testing.T) {
 	t.Run("Test todo deletion: todo id is not the same", func(t *testing.T) {
-		container, todoRepository := setupPostgres(t)
+		container, todoRepository := repository.SetupPostgres(t)
 		defer container.Terminate(context.Background())
 		todoDone := true
 		ti, _ := time.Parse(time.RFC3339, "2022-09-21T14:07:05.768Z")
@@ -278,7 +210,7 @@ func TestTodoRepositoryImplOnPostgres6(t *testing.T) {
 
 func TestTodoRepositoryImplOnPostgres7(t *testing.T) {
 	t.Run("Test todo deletion: Good case", func(t *testing.T) {
-		container, todoRepository := setupPostgres(t)
+		container, todoRepository := repository.SetupPostgres(t)
 		defer container.Terminate(context.Background())
 		todoDone := true
 		ti, _ := time.Parse(time.RFC3339, "2022-09-21T14:07:05.768Z")
@@ -303,7 +235,7 @@ func TestTodoRepositoryImplOnPostgres7(t *testing.T) {
 
 func TestTodoRepositoryImplOnPostgres8(t *testing.T) {
 	t.Run("Test GetAll", func(t *testing.T) {
-		container, todoRepository := setupPostgres(t)
+		container, todoRepository := repository.SetupPostgres(t)
 		defer container.Terminate(context.Background())
 		todoDone1 := false
 		ti1, _ := time.Parse(time.RFC3339, "2020-09-21T14:07:05.768Z")

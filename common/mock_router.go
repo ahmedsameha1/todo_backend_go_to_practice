@@ -110,6 +110,24 @@ func (mr *MockRouterMockRecorder) PUT(arg0 interface{}, arg1 ...interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PUT", reflect.TypeOf((*MockRouter)(nil).PUT), varargs...)
 }
 
+// Run mocks base method.
+func (m *MockRouter) Run(arg0 ...string) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{}
+	for _, a := range arg0 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Run", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Run indicates an expected call of Run.
+func (mr *MockRouterMockRecorder) Run(arg0 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Run", reflect.TypeOf((*MockRouter)(nil).Run), arg0...)
+}
+
 // Use mocks base method.
 func (m *MockRouter) Use(arg0 ...gin.HandlerFunc) gin.IRoutes {
 	m.ctrl.T.Helper()
