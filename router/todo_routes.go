@@ -1,4 +1,4 @@
-package routers
+package router
 
 import (
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/common"

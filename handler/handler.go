@@ -15,7 +15,7 @@ import (
 var ErrParseIsNil error = errors.New("parse is nil")
 
 type ErrorHandlerImpl struct {
-	Logger     common.Logger
+	Logger common.Logger
 }
 
 func (eh ErrorHandlerImpl) HandleAppError(webContext common.WebContext, someError error, code int) {
@@ -23,27 +23,27 @@ func (eh ErrorHandlerImpl) HandleAppError(webContext common.WebContext, someErro
 	webContext.JSON(code, someError)
 }
 
-func Create(todoRepository common.TodoRepository, errorHandler common.ErrorHandler) func(common.WebContext) {
-	return func(ctx common.WebContext) {
+func Create(todoRepository common.TodoRepository, errorHandler common.ErrorHandler) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
 		token, ok := ctx.Get(middleware.AuthToken)
 		if !ok {
 			errorHandler.HandleAppError(ctx, middleware.ErrNoUID, http.StatusUnauthorized)
 		} else {
-		var json model.Todo
-		if err := ctx.ShouldBindJSON(&json); err != nil {
-			errorHandler.HandleAppError(ctx, err,
-				http.StatusBadRequest)
-			return
+			var json model.Todo
+			if err := ctx.ShouldBindJSON(&json); err != nil {
+				errorHandler.HandleAppError(ctx, err,
+					http.StatusBadRequest)
+				return
+			}
+			token := token.(*auth.Token)
+			err := todoRepository.Create(&json, token.UID)
+			if err != nil {
+				errorHandler.HandleAppError(ctx, err,
+					http.StatusInternalServerError)
+			} else {
+				ctx.JSON(http.StatusOK, json)
+			}
 		}
-		token := token.(*auth.Token)
-		err := todoRepository.Create(&json, token.UID)
-		if err != nil {
-			errorHandler.HandleAppError(ctx, err,
-				http.StatusInternalServerError)
-		} else {
-			ctx.JSON(http.StatusOK, json)
-		}
-	}
 	}
 }
 

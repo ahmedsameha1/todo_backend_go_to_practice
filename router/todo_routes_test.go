@@ -1,4 +1,4 @@
-package routers
+package router
 
 import (
 	"reflect"
@@ -7,6 +7,7 @@ import (
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/common"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/handler"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/middleware"
+	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -23,7 +24,7 @@ func TestSetTodoRoutes(t *testing.T) {
 		assert.Equal(t, reflect.ValueOf(authMiddleware).Pointer(), reflect.ValueOf(handler).Pointer())
 	})
 	create := handler.Create(todoRepositoryMock, errorHandlerMock)
-	routerMock.EXPECT().POST("/todos", gomock.Any()).Do(func(path string, handler func(common.WebContext)) {
+	routerMock.EXPECT().POST("/todos", gomock.Any()).Do(func(path string, handler func(*gin.Context)) {
 		assert.Equal(t, reflect.ValueOf(create).Pointer(), reflect.ValueOf(handler).Pointer())
 	})
 	getAll := handler.GetAll(todoRepositoryMock, errorHandlerMock)
