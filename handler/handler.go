@@ -91,8 +91,8 @@ func GetById(todoRepository common.TodoRepository, errorHandler common.ErrorHand
 	}
 }
 
-func Update(todoRepository common.TodoRepository, errorHandler common.ErrorHandler) func(common.WebContext) {
-	return func(ctx common.WebContext) {
+func Update(todoRepository common.TodoRepository, errorHandler common.ErrorHandler) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
 		token, ok := ctx.Get(middleware.AuthToken)
 		if !ok {
 			errorHandler.HandleAppError(ctx, middleware.ErrNoUID, http.StatusUnauthorized)

@@ -14,7 +14,7 @@ var ErrError error = errors.New("an error")
 type Router interface {
 	Use(middleware ...func(WebContext)) gin.IRoutes
 	POST(relativePath string, handlers ...gin.HandlerFunc) gin.IRoutes
-	PUT(relativePath string, handlers ...func(WebContext)) gin.IRoutes
+	PUT(relativePath string, handlers ...gin.HandlerFunc) gin.IRoutes
 	GET(relativePath string, handlers ...func(WebContext)) gin.IRoutes
 	DELETE(relativePath string, handlers ...func(WebContext)) gin.IRoutes
 }

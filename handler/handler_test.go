@@ -40,9 +40,7 @@ func TestHandleError(t *testing.T) {
 
 func TestCreate(t *testing.T) {
 	t.Run("Good case", func(t *testing.T) {
-		gin.SetMode(gin.TestMode)
-		http_recorder := httptest.NewRecorder()
-		gin_context, _ := gin.CreateTestContext(http_recorder)
+		gin_context, http_recorder := createRecorderAndGinContext()
 		mockCtrl := gomock.NewController(t)
 		todoRepositoryMock := common.NewMockTodoRepository(mockCtrl)
 		errorHandlerMock := common.NewMockErrorHandler(mockCtrl)
@@ -75,9 +73,7 @@ func TestCreate(t *testing.T) {
 	})
 
 	t.Run("When TodoRepository returns an error", func(t *testing.T) {
-		gin.SetMode(gin.TestMode)
-		http_recorder := httptest.NewRecorder()
-		gin_context, _ := gin.CreateTestContext(http_recorder)
+		gin_context, _ := createRecorderAndGinContext()
 		mockCtrl := gomock.NewController(t)
 		todoRepositoryMock := common.NewMockTodoRepository(mockCtrl)
 		errorHandlerMock := common.NewMockErrorHandler(mockCtrl)
@@ -104,9 +100,7 @@ func TestCreate(t *testing.T) {
 	})
 
 	t.Run("When required fields are not present in the web request body", func(t *testing.T) {
-		gin.SetMode(gin.TestMode)
-		http_recorder := httptest.NewRecorder()
-		gin_context, _ := gin.CreateTestContext(http_recorder)
+		gin_context, _ := createRecorderAndGinContext()
 		mockCtrl := gomock.NewController(t)
 		todoRepositoryMock := common.NewMockTodoRepository(mockCtrl)
 		errorHandlerMock := common.NewMockErrorHandler(mockCtrl)
@@ -137,9 +131,7 @@ func TestCreate(t *testing.T) {
 	})
 
 	t.Run("When there is no auth token in the web context", func(t *testing.T) {
-		gin.SetMode(gin.TestMode)
-		http_recorder := httptest.NewRecorder()
-		gin_context, _ := gin.CreateTestContext(http_recorder)
+		gin_context, _ := createRecorderAndGinContext()
 		mockCtrl := gomock.NewController(t)
 		todoRepositoryMock := common.NewMockTodoRepository(mockCtrl)
 		errorHandlerMock := common.NewMockErrorHandler(mockCtrl)
@@ -298,56 +290,105 @@ func TestGetById(t *testing.T) {
 
 func TestUpdate(t *testing.T) {
 	t.Run("Good case", func(t *testing.T) {
-		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
-		token := &auth.Token{UID: "nfwseo"}
+		gin_context, http_recorder := createRecorderAndGinContext()
+		todoRepositoryMock, _, errorHandlerMock := createMocks(t)
 		update := Update(todoRepositoryMock, errorHandlerMock)
 		assert.NotNil(t, update)
 		done := false
+		token := &auth.Token{UID: "nfwseo"}
+		ti, _ := time.Parse(time.RFC3339, "2022-09-21T14:07:05.768Z")
 		todo := model.Todo{Id: uuid.New().String(), Title: "title1",
 			Description: "description1",
-			Done:        &done, CreatedAt: time.Now()}
+			Done:        &done, CreatedAt: ti}
+		json_bytes, err := json.Marshal(todo)
+		if err != nil {
+			t.Fatal(err)
+		}
+		web_request := &http.Request{
+			Body:   io.NopCloser(bytes.NewBuffer(json_bytes)),
+			Header: map[string][]string{"Content-Type": {"application/json"}}}
+		gin_context.Request = web_request
+		gin_context.Set(middleware.AuthToken, token)
 		todoRepositoryMock.EXPECT().Update(&todo, token.UID).Return(nil)
-		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(token, true)
-		ginContextMock.EXPECT().ShouldBindJSON(gomock.Any()).SetArg(0, todo)
-		ginContextMock.EXPECT().JSON(http.StatusNoContent, map[string]any{})
-		update(ginContextMock)
+		update(gin_context)
+		assert.Equal(t, http.StatusNoContent, http_recorder.Code)
+		assert.Empty(t, http_recorder.Body.Bytes())
 	})
 
 	t.Run("When required fields are not present in the web request body", func(t *testing.T) {
-		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
+		gin_context, _ := createRecorderAndGinContext()
+		todoRepositoryMock, _, errorHandlerMock := createMocks(t)
+		done := false
 		token := &auth.Token{UID: "nfwseo"}
+		ti, _ := time.Parse(time.RFC3339, "2022-09-21T14:07:05.768Z")
+		todo := model.Todo{Id: uuid.New().String(), Title: "title1",
+			Done: &done, CreatedAt: ti}
+		json_bytes, err := json.Marshal(todo)
+		if err != nil {
+			t.Fatal(err)
+		}
+		web_request := &http.Request{
+			Body:   io.NopCloser(bytes.NewBuffer(json_bytes)),
+			Header: map[string][]string{"Content-Type": {"application/json"}}}
+		gin_context.Request = web_request
+		gin_context.Set(middleware.AuthToken, token)
 		update := Update(todoRepositoryMock, errorHandlerMock)
 		assert.NotNil(t, update)
 		todoRepositoryMock.EXPECT().Update(gomock.Any(), token.UID).Times(0)
-		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(token, true)
-		ginContextMock.EXPECT().ShouldBindJSON(gomock.Any()).Return(common.ErrError)
-		errorHandlerMock.EXPECT().HandleAppError(ginContextMock, common.ErrError, http.StatusBadRequest)
-		update(ginContextMock)
+		errorHandlerMock.EXPECT().HandleAppError(gin_context, gomock.Any(), http.StatusBadRequest).
+			DoAndReturn(func(ctx *gin.Context, err error, code int) {
+				if !strings.Contains(err.Error(), "Description") {
+					t.Fail()
+				}
+			})
+		update(gin_context)
 	})
 
 	t.Run("When TodoRepository returns an error", func(t *testing.T) {
-		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
-		token := &auth.Token{UID: "nfwseo"}
+		gin_context, _ := createRecorderAndGinContext()
+		todoRepositoryMock, _, errorHandlerMock := createMocks(t)
 		update := Update(todoRepositoryMock, errorHandlerMock)
 		assert.NotNil(t, update)
 		done := false
+		token := &auth.Token{UID: "nfwseo"}
+		ti, _ := time.Parse(time.RFC3339, "2022-09-21T14:07:05.768Z")
 		todo := model.Todo{Id: uuid.New().String(), Title: "title1",
 			Description: "description1",
-			Done:        &done, CreatedAt: time.Now()}
+			Done:        &done, CreatedAt: ti}
+		json_bytes, err := json.Marshal(todo)
+		if err != nil {
+			t.Fatal(err)
+		}
+		web_request := &http.Request{
+			Body:   io.NopCloser(bytes.NewBuffer(json_bytes)),
+			Header: map[string][]string{"Content-Type": {"application/json"}}}
+		gin_context.Request = web_request
+		gin_context.Set(middleware.AuthToken, token)
 		todoRepositoryMock.EXPECT().Update(&todo, token.UID).Return(common.ErrError)
-		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(token, true)
-		ginContextMock.EXPECT().ShouldBindJSON(gomock.Any()).SetArg(0, todo)
-		errorHandlerMock.EXPECT().HandleAppError(ginContextMock, common.ErrError, http.StatusInternalServerError)
-		update(ginContextMock)
+		errorHandlerMock.EXPECT().HandleAppError(gin_context, common.ErrError, http.StatusInternalServerError)
+		update(gin_context)
 	})
 
 	t.Run("When there is no auth token in the web context", func(t *testing.T) {
-		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
+		gin_context, _ := createRecorderAndGinContext()
+		todoRepositoryMock, _, errorHandlerMock := createMocks(t)
 		update := Update(todoRepositoryMock, errorHandlerMock)
 		assert.NotNil(t, update)
-		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(nil, false)
-		errorHandlerMock.EXPECT().HandleAppError(ginContextMock, middleware.ErrNoUID, http.StatusUnauthorized)
-		update(ginContextMock)
+		done := false
+		ti, _ := time.Parse(time.RFC3339, "2022-09-21T14:07:05.768Z")
+		todo := model.Todo{Id: uuid.New().String(), Title: "title1",
+			Description: "description1",
+			Done:        &done, CreatedAt: ti}
+		json_bytes, err := json.Marshal(todo)
+		if err != nil {
+			t.Fatal(err)
+		}
+		web_request := &http.Request{
+			Body:   io.NopCloser(bytes.NewBuffer(json_bytes)),
+			Header: map[string][]string{"Content-Type": {"application/json"}}}
+		gin_context.Request = web_request
+		errorHandlerMock.EXPECT().HandleAppError(gin_context, middleware.ErrNoUID, http.StatusUnauthorized)
+		update(gin_context)
 	})
 }
 
@@ -421,4 +462,11 @@ func createMocks(t *testing.T) (*common.MockTodoRepository, *common.MockWebConte
 	t.Helper()
 	mockCtrl := gomock.NewController(t)
 	return common.NewMockTodoRepository(mockCtrl), common.NewMockWebContext(mockCtrl), common.NewMockErrorHandler(mockCtrl)
+}
+
+func createRecorderAndGinContext() (*gin.Context, *httptest.ResponseRecorder) {
+	gin.SetMode(gin.TestMode)
+	http_recorder := httptest.NewRecorder()
+	gin_context, _ := gin.CreateTestContext(http_recorder)
+	return gin_context, http_recorder
 }

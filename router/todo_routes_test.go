@@ -36,7 +36,7 @@ func TestSetTodoRoutes(t *testing.T) {
 		assert.Equal(t, reflect.ValueOf(getById).Pointer(), reflect.ValueOf(handler).Pointer())
 	})
 	update := handler.Update(todoRepositoryMock, errorHandlerMock)
-	routerMock.EXPECT().PUT("/todos", gomock.Any()).Do(func(path string, handler func(common.WebContext)) {
+	routerMock.EXPECT().PUT("/todos", gomock.Any()).Do(func(path string, handler func(*gin.Context)) {
 		assert.Equal(t, reflect.ValueOf(update).Pointer(), reflect.ValueOf(handler).Pointer())
 	})
 	delete := handler.Delete(todoRepositoryMock, errorHandlerMock, uuid.Parse)

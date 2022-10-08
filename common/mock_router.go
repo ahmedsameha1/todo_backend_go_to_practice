@@ -92,7 +92,7 @@ func (mr *MockRouterMockRecorder) POST(arg0 interface{}, arg1 ...interface{}) *g
 }
 
 // PUT mocks base method.
-func (m *MockRouter) PUT(arg0 string, arg1 ...func(WebContext)) gin.IRoutes {
+func (m *MockRouter) PUT(arg0 string, arg1 ...gin.HandlerFunc) gin.IRoutes {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{arg0}
 	for _, a := range arg1 {
