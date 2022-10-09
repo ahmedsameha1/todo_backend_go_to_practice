@@ -40,7 +40,7 @@ func TestSetTodoRoutes(t *testing.T) {
 		assert.Equal(t, reflect.ValueOf(update).Pointer(), reflect.ValueOf(handler).Pointer())
 	})
 	delete := handler.Delete(todoRepositoryMock, errorHandlerMock, uuid.Parse)
-	routerMock.EXPECT().DELETE("/todos/:id", gomock.Any()).Do(func(path string, handler func(common.WebContext)) {
+	routerMock.EXPECT().DELETE("/todos/:id", gomock.Any()).Do(func(path string, handler gin.HandlerFunc) {
 		assert.Equal(t, reflect.ValueOf(delete).Pointer(), reflect.ValueOf(handler).Pointer())
 	})
 	SetTodoRoutes(routerMock, todoRepositoryMock, errorHandlerMock, firebaseAuthClientMock)

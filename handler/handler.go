@@ -115,8 +115,8 @@ func Update(todoRepository common.TodoRepository, errorHandler common.ErrorHandl
 }
 
 func Delete(todoRepository common.TodoRepository, errorHandler common.ErrorHandler,
-	parse func(string) (uuid.UUID, error)) func(common.WebContext) {
-	return func(ctx common.WebContext) {
+	parse func(string) (uuid.UUID, error)) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
 		token, ok := ctx.Get(middleware.AuthToken)
 		if !ok {
 			errorHandler.HandleAppError(ctx, middleware.ErrNoUID, http.StatusUnauthorized)

@@ -45,7 +45,6 @@ func TestCreate(t *testing.T) {
 		todoRepositoryMock := common.NewMockTodoRepository(mockCtrl)
 		errorHandlerMock := common.NewMockErrorHandler(mockCtrl)
 		createTodo := Create(todoRepositoryMock, errorHandlerMock)
-		assert.NotNil(t, createTodo)
 		done := false
 		token := &auth.Token{UID: "sfweo"}
 		ti, _ := time.Parse(time.RFC3339, "2022-09-21T14:07:05.768Z")
@@ -78,7 +77,6 @@ func TestCreate(t *testing.T) {
 		todoRepositoryMock := common.NewMockTodoRepository(mockCtrl)
 		errorHandlerMock := common.NewMockErrorHandler(mockCtrl)
 		createTodo := Create(todoRepositoryMock, errorHandlerMock)
-		assert.NotNil(t, createTodo)
 		done := false
 		token := &auth.Token{UID: "sfweo"}
 		ti, _ := time.Parse(time.RFC3339, "2022-09-21T14:07:05.768Z")
@@ -105,7 +103,6 @@ func TestCreate(t *testing.T) {
 		todoRepositoryMock := common.NewMockTodoRepository(mockCtrl)
 		errorHandlerMock := common.NewMockErrorHandler(mockCtrl)
 		createTodo := Create(todoRepositoryMock, errorHandlerMock)
-		assert.NotNil(t, createTodo)
 		done := false
 		token := &auth.Token{UID: "sfweo"}
 		ti, _ := time.Parse(time.RFC3339, "2022-09-21T14:07:05.768Z")
@@ -137,7 +134,6 @@ func TestCreate(t *testing.T) {
 		errorHandlerMock := common.NewMockErrorHandler(mockCtrl)
 		errorHandlerMock.EXPECT().HandleAppError(gin_context, middleware.ErrNoUID, http.StatusUnauthorized)
 		createTodo := Create(todoRepositoryMock, errorHandlerMock)
-		assert.NotNil(t, createTodo)
 		done := false
 		ti, _ := time.Parse(time.RFC3339, "2022-09-21T14:07:05.768Z")
 		todo := model.Todo{Id: uuid.New().String(), Title: "title1",
@@ -293,7 +289,6 @@ func TestUpdate(t *testing.T) {
 		gin_context, http_recorder := createRecorderAndGinContext()
 		todoRepositoryMock, _, errorHandlerMock := createMocks(t)
 		update := Update(todoRepositoryMock, errorHandlerMock)
-		assert.NotNil(t, update)
 		done := false
 		token := &auth.Token{UID: "nfwseo"}
 		ti, _ := time.Parse(time.RFC3339, "2022-09-21T14:07:05.768Z")
@@ -333,7 +328,6 @@ func TestUpdate(t *testing.T) {
 		gin_context.Request = web_request
 		gin_context.Set(middleware.AuthToken, token)
 		update := Update(todoRepositoryMock, errorHandlerMock)
-		assert.NotNil(t, update)
 		todoRepositoryMock.EXPECT().Update(gomock.Any(), token.UID).Times(0)
 		errorHandlerMock.EXPECT().HandleAppError(gin_context, gomock.Any(), http.StatusBadRequest).
 			DoAndReturn(func(ctx *gin.Context, err error, code int) {
@@ -348,7 +342,6 @@ func TestUpdate(t *testing.T) {
 		gin_context, _ := createRecorderAndGinContext()
 		todoRepositoryMock, _, errorHandlerMock := createMocks(t)
 		update := Update(todoRepositoryMock, errorHandlerMock)
-		assert.NotNil(t, update)
 		done := false
 		token := &auth.Token{UID: "nfwseo"}
 		ti, _ := time.Parse(time.RFC3339, "2022-09-21T14:07:05.768Z")
@@ -373,7 +366,6 @@ func TestUpdate(t *testing.T) {
 		gin_context, _ := createRecorderAndGinContext()
 		todoRepositoryMock, _, errorHandlerMock := createMocks(t)
 		update := Update(todoRepositoryMock, errorHandlerMock)
-		assert.NotNil(t, update)
 		done := false
 		ti, _ := time.Parse(time.RFC3339, "2022-09-21T14:07:05.768Z")
 		todo := model.Todo{Id: uuid.New().String(), Title: "title1",
@@ -394,67 +386,69 @@ func TestUpdate(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 	t.Run("Good case", func(t *testing.T) {
-		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
+		gin_context, http_recorder := createRecorderAndGinContext()
+		todoRepositoryMock, _, errorHandlerMock := createMocks(t)
 		token := &auth.Token{UID: "oiwhbegfwh"}
 		todoId := uuid.New()
 		uUidParseMock := func(id string) (uuid.UUID, error) {
 			return todoId, nil
 		}
+		gin_context.Params = append(gin_context.Params, gin.Param{Key: "id", Value: todoId.String()})
+		gin_context.Set(middleware.AuthToken, token)
 		todoRepositoryMock.EXPECT().Delete(todoId.String(), token.UID).Return(nil)
-		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(token, true)
-		ginContextMock.EXPECT().Param("id").Return(todoId.String())
-		ginContextMock.EXPECT().JSON(http.StatusNoContent, map[string]any{})
 		delete := Delete(todoRepositoryMock, errorHandlerMock, uUidParseMock)
-		assert.NotNil(t, delete)
-		delete(ginContextMock)
+		delete(gin_context)
+		assert.Equal(t, http.StatusNoContent, http_recorder.Code)
+		assert.Empty(t, http_recorder.Body.Bytes())
 	})
 
 	t.Run("When invalid todo id is sent as a path parameter in the url", func(t *testing.T) {
-		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
+		gin_context, _ := createRecorderAndGinContext()
+		todoRepositoryMock, _, errorHandlerMock := createMocks(t)
 		token := &auth.Token{UID: "oiwhbegfwh"}
 		uUidParseMock := func(id string) (uuid.UUID, error) {
 			return uuid.Nil, common.ErrError
 		}
+		gin_context.Params = append(gin_context.Params, gin.Param{Key: "id", Value: "oehwegiuf"})
+		gin_context.Set(middleware.AuthToken, token)
 		todoRepositoryMock.EXPECT().Delete(gomock.Any(), token.UID).Times(0)
-		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(token, true)
-		ginContextMock.EXPECT().Param("id")
-		errorHandlerMock.EXPECT().HandleAppError(ginContextMock, common.ErrError, http.StatusBadRequest)
+		errorHandlerMock.EXPECT().HandleAppError(gin_context, common.ErrError, http.StatusBadRequest)
 		delete := Delete(todoRepositoryMock, errorHandlerMock, uUidParseMock)
-		assert.NotNil(t, delete)
-		delete(ginContextMock)
+		delete(gin_context)
 	})
 
 	t.Run("When TodoRepository return an error", func(t *testing.T) {
-		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
+		gin_context, _ := createRecorderAndGinContext()
+		todoRepositoryMock, _, errorHandlerMock := createMocks(t)
 		token := &auth.Token{UID: "oiwhbegfwh"}
 		todoId := uuid.New()
 		uUidParseMock := func(id string) (uuid.UUID, error) {
 			return todoId, nil
 		}
+		gin_context.Params = append(gin_context.Params, gin.Param{Key: "id", Value: todoId.String()})
+		gin_context.Set(middleware.AuthToken, token)
 		todoRepositoryMock.EXPECT().Delete(todoId.String(), token.UID).Return(common.ErrError)
-		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(token, true)
-		ginContextMock.EXPECT().Param("id").Return(todoId.String())
-		errorHandlerMock.EXPECT().HandleAppError(ginContextMock, common.ErrError, http.StatusInternalServerError)
+		errorHandlerMock.EXPECT().HandleAppError(gin_context, common.ErrError, http.StatusInternalServerError)
 		delete := Delete(todoRepositoryMock, errorHandlerMock, uUidParseMock)
-		assert.NotNil(t, delete)
-		delete(ginContextMock)
+		delete(gin_context)
 	})
 
 	t.Run("When parse is nil", func(t *testing.T) {
-		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
+		gin_context, _ := createRecorderAndGinContext()
+		todoRepositoryMock, _, errorHandlerMock := createMocks(t)
 		token := &auth.Token{UID: "oiwhbegfwh"}
-		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(token, true)
-		errorHandlerMock.EXPECT().HandleAppError(ginContextMock, ErrParseIsNil, http.StatusInternalServerError)
+		gin_context.Set(middleware.AuthToken, token)
+		errorHandlerMock.EXPECT().HandleAppError(gin_context, ErrParseIsNil, http.StatusInternalServerError)
 		delete := Delete(todoRepositoryMock, errorHandlerMock, nil)
-		delete(ginContextMock)
+		delete(gin_context)
 	})
 
 	t.Run("When there is no auth token in the web context", func(t *testing.T) {
-		todoRepositoryMock, ginContextMock, errorHandlerMock := createMocks(t)
-		ginContextMock.EXPECT().Get(middleware.AuthToken).Return(nil, false)
-		errorHandlerMock.EXPECT().HandleAppError(ginContextMock, middleware.ErrNoUID, http.StatusUnauthorized)
+		gin_context, _ := createRecorderAndGinContext()
+		todoRepositoryMock, _, errorHandlerMock := createMocks(t)
+		errorHandlerMock.EXPECT().HandleAppError(gin_context, middleware.ErrNoUID, http.StatusUnauthorized)
 		delete := Delete(todoRepositoryMock, errorHandlerMock, nil)
-		delete(ginContextMock)
+		delete(gin_context)
 	})
 }
 
