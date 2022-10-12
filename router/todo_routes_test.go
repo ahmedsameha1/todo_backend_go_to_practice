@@ -24,19 +24,19 @@ func TestSetTodoRoutes(t *testing.T) {
 		assert.Equal(t, reflect.ValueOf(authMiddleware).Pointer(), reflect.ValueOf(handler).Pointer())
 	})
 	create := handler.Create(todoRepositoryMock, errorHandlerMock)
-	routerMock.EXPECT().POST("/todos", gomock.Any()).Do(func(path string, handler func(*gin.Context)) {
+	routerMock.EXPECT().POST("/todos", gomock.Any()).Do(func(path string, handler gin.HandlerFunc) {
 		assert.Equal(t, reflect.ValueOf(create).Pointer(), reflect.ValueOf(handler).Pointer())
 	})
 	getAll := handler.GetAll(todoRepositoryMock, errorHandlerMock)
-	routerMock.EXPECT().GET("/todos", gomock.Any()).Do(func(path string, handler func(common.WebContext)) {
+	routerMock.EXPECT().GET("/todos", gomock.Any()).Do(func(path string, handler gin.HandlerFunc) {
 		assert.Equal(t, reflect.ValueOf(getAll).Pointer(), reflect.ValueOf(handler).Pointer())
 	})
 	getById := handler.GetById(todoRepositoryMock, errorHandlerMock, uuid.Parse)
-	routerMock.EXPECT().GET("/todos/:id", gomock.Any()).Do(func(path string, handler func(common.WebContext)) {
+	routerMock.EXPECT().GET("/todos/:id", gomock.Any()).Do(func(path string, handler gin.HandlerFunc) {
 		assert.Equal(t, reflect.ValueOf(getById).Pointer(), reflect.ValueOf(handler).Pointer())
 	})
 	update := handler.Update(todoRepositoryMock, errorHandlerMock)
-	routerMock.EXPECT().PUT("/todos", gomock.Any()).Do(func(path string, handler func(*gin.Context)) {
+	routerMock.EXPECT().PUT("/todos", gomock.Any()).Do(func(path string, handler gin.HandlerFunc) {
 		assert.Equal(t, reflect.ValueOf(update).Pointer(), reflect.ValueOf(handler).Pointer())
 	})
 	delete := handler.Delete(todoRepositoryMock, errorHandlerMock, uuid.Parse)

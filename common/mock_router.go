@@ -54,7 +54,7 @@ func (mr *MockRouterMockRecorder) DELETE(arg0 interface{}, arg1 ...interface{}) 
 }
 
 // GET mocks base method.
-func (m *MockRouter) GET(arg0 string, arg1 ...func(WebContext)) gin.IRoutes {
+func (m *MockRouter) GET(arg0 string, arg1 ...gin.HandlerFunc) gin.IRoutes {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{arg0}
 	for _, a := range arg1 {

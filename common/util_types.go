@@ -15,7 +15,7 @@ type Router interface {
 	Use(middleware ...func(WebContext)) gin.IRoutes
 	POST(relativePath string, handlers ...gin.HandlerFunc) gin.IRoutes
 	PUT(relativePath string, handlers ...gin.HandlerFunc) gin.IRoutes
-	GET(relativePath string, handlers ...func(WebContext)) gin.IRoutes
+	GET(relativePath string, handlers ...gin.HandlerFunc) gin.IRoutes
 	DELETE(relativePath string, handlers ...gin.HandlerFunc) gin.IRoutes
 }
 

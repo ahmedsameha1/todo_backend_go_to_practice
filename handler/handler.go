@@ -47,8 +47,8 @@ func Create(todoRepository common.TodoRepository, errorHandler common.ErrorHandl
 	}
 }
 
-func GetAll(todoRepository common.TodoRepository, errorHandler common.ErrorHandler) func(common.WebContext) {
-	return func(ctx common.WebContext) {
+func GetAll(todoRepository common.TodoRepository, errorHandler common.ErrorHandler) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
 		tokeN, ok := ctx.Get(middleware.AuthToken)
 		if !ok {
 			errorHandler.HandleAppError(ctx, middleware.ErrNoUID, http.StatusUnauthorized)
@@ -64,8 +64,8 @@ func GetAll(todoRepository common.TodoRepository, errorHandler common.ErrorHandl
 }
 
 func GetById(todoRepository common.TodoRepository, errorHandler common.ErrorHandler,
-	parse func(string) (uuid.UUID, error)) func(common.WebContext) {
-	return func(ctx common.WebContext) {
+	parse func(string) (uuid.UUID, error)) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
 		token, ok := ctx.Get(middleware.AuthToken)
 		if !ok {
 			errorHandler.HandleAppError(ctx, middleware.ErrNoUID, http.StatusUnauthorized)
