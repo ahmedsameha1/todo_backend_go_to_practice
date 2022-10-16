@@ -20,7 +20,7 @@ func TestSetTodoRoutes(t *testing.T) {
 	errorHandlerMock := common.NewMockErrorHandler(mockCtrl)
 	firebaseAuthClientMock := common.NewMockAuthClient(mockCtrl)
 	authMiddleware := middleware.GetAuthMiddleware(firebaseAuthClientMock, errorHandlerMock)
-	routerMock.EXPECT().Use(gomock.Any()).Do(func(handler func(common.WebContext)) {
+	routerMock.EXPECT().Use(gomock.Any()).Do(func(handler gin.HandlerFunc) {
 		assert.Equal(t, reflect.ValueOf(authMiddleware).Pointer(), reflect.ValueOf(handler).Pointer())
 	})
 	create := handler.Create(todoRepositoryMock, errorHandlerMock)

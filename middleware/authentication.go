@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/common"
+	"github.com/gin-gonic/gin"
 )
 
 const AUTHORIZATION string = "Authorization"
@@ -19,8 +20,8 @@ var ErrAuthClientIsNil error = errors.New("auth client is nil")
 var ErrIdTokenVerificationFailed error = errors.New("id token verification faild")
 var ErrNoUID error = errors.New("there is no UID in the token")
 
-func GetAuthMiddleware(authClient common.AuthClient, errorHandler common.ErrorHandler) func(common.WebContext) {
-	return func(ctx common.WebContext) {
+func GetAuthMiddleware(authClient common.AuthClient, errorHandler common.ErrorHandler) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
 		if authClient == nil {
 			errorHandler.HandleAppError(ctx, ErrAuthClientIsNil, http.StatusInternalServerError)
 		} else {
@@ -39,7 +40,6 @@ func GetAuthMiddleware(authClient common.AuthClient, errorHandler common.ErrorHa
 						errorHandler.HandleAppError(ctx, ErrNoUID, http.StatusUnauthorized)
 					} else {
 						ctx.Set(AuthToken, authToken)
-						ctx.Next()
 					}
 				}
 			}

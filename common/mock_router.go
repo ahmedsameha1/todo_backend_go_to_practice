@@ -111,7 +111,7 @@ func (mr *MockRouterMockRecorder) PUT(arg0 interface{}, arg1 ...interface{}) *go
 }
 
 // Use mocks base method.
-func (m *MockRouter) Use(arg0 ...func(WebContext)) gin.IRoutes {
+func (m *MockRouter) Use(arg0 ...gin.HandlerFunc) gin.IRoutes {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{}
 	for _, a := range arg0 {
