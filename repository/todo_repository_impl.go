@@ -1,11 +1,10 @@
 package repository
 
 import (
-	"context"
+	"database/sql"
 	"errors"
 
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/model"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 var ErrNotFound = errors.New("item is not found")
@@ -20,20 +19,20 @@ const (
 )
 
 type TodoRepositoryImpl struct {
-	DBPool pgxpool.Pool
+	DBPool *sql.DB
 }
 
 func (tr TodoRepositoryImpl) Create(todo *model.Todo, userId string) (err error) {
 	if !model.IsValid(todo) {
 		return ErrInvalidTodo
 	}
-		_, err = tr.DBPool.Exec(context.Background(), insertTodoQuery, todo.Id, todo.Title,
+		_, err = tr.DBPool.Exec( insertTodoQuery, todo.Id, todo.Title,
 			todo.Description, todo.Done, todo.CreatedAt, userId)
 	return err
 }
 
 func (tr TodoRepositoryImpl) GetAll(userId string) ([]model.Todo, error) {
-	rows, _ := tr.DBPool.Query(context.Background(), allTodosQuery, userId)
+	rows, _ := tr.DBPool.Query( allTodosQuery, userId)
 	todos := []model.Todo{}
 	for rows.Next() {
 		var todo model.Todo
@@ -49,7 +48,7 @@ func (tr TodoRepositoryImpl) GetAll(userId string) ([]model.Todo, error) {
 }
 
 func (tr TodoRepositoryImpl) GetById(id string, userId string) (*model.Todo, error) {
-	rows, _ := tr.DBPool.Query(context.Background(), specificTodoQuery, id, userId)
+	rows, _ := tr.DBPool.Query( specificTodoQuery, id, userId)
 	if err := rows.Err(); err != nil {
 		return nil, err
 	} else {
@@ -69,12 +68,12 @@ func (tr TodoRepositoryImpl) Update(todo *model.Todo, userId string) error {
 	if !model.IsValid(todo) {
 		return ErrInvalidTodo
 	}
-	_, err := tr.DBPool.Exec(context.Background(), updateQuery, todo.Id, todo.Title,
+	_, err := tr.DBPool.Exec( updateQuery, todo.Id, todo.Title,
 		todo.Description, todo.Done, todo.CreatedAt, userId)
 	return err
 }
 
 func (tr TodoRepositoryImpl) Delete(id string, userId string) error {
-	_, err := tr.DBPool.Exec(context.Background(), deleteQuery, id, userId)
+	_, err := tr.DBPool.Exec( deleteQuery, id, userId)
 	return err
 }

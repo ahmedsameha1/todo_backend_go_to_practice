@@ -2,6 +2,7 @@ package integration_tests
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"os"
 	"testing"
@@ -12,13 +13,14 @@ import (
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/repository"
 	"github.com/docker/go-connections/nat"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/stretchr/testify/assert"
 	tc "github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 func setupPostgres(t *testing.T) (tc.Container, common.TodoRepository) {
+	dbname, user, password := "testdb", "user", "password"
 	postgresPort := nat.Port("5432/tcp")
 	postgres, err := tc.GenericContainer(context.Background(),
 		tc.GenericContainerRequest{
@@ -26,8 +28,9 @@ func setupPostgres(t *testing.T) (tc.Container, common.TodoRepository) {
 				Image:        "postgres:14.5",
 				ExposedPorts: []string{postgresPort.Port()},
 				Env: map[string]string{
-					"POSTGRES_PASSWORD": "password",
-					"POSTGRES_USER":     "user",
+					"POSTGRES_PASSWORD": password,
+					"POSTGRES_USER":     user,
+					"POSTGRES_DB":       dbname,
 				},
 				WaitingFor: wait.ForAll(
 					wait.ForLog("database system is ready to accept connections"),
@@ -47,9 +50,10 @@ func setupPostgres(t *testing.T) (tc.Container, common.TodoRepository) {
 		return nil, nil
 	}
 
-	postgresUrl := fmt.Sprintf("postgres://user:password@localhost:%s?sslmode=disable", hostPort.Port())
+	postgresDataSourceName := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		"localhost", hostPort.Port(), user, password, dbname)
 
-	dbpool, err := pgxpool.New(context.Background(), postgresUrl)
+	dbpool, err := sql.Open("pgx", postgresDataSourceName)
 	if err != nil {
 		t.Fatal(err)
 		return nil, nil
@@ -61,13 +65,13 @@ func setupPostgres(t *testing.T) (tc.Container, common.TodoRepository) {
 		return nil, nil
 	}
 
-	_, err = dbpool.Exec(context.Background(), string(byteArray))
+	_, err = dbpool.Exec(string(byteArray))
 	if err != nil {
 		t.Fatal(err)
 		return nil, nil
 	}
 
-	return postgres, repository.TodoRepositoryImpl{DBPool: *dbpool}
+	return postgres, repository.TodoRepositoryImpl{DBPool: dbpool}
 }
 
 func TestTodoRepositoryImplOnPostgres1(t *testing.T) {
