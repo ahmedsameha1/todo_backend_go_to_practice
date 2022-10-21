@@ -71,7 +71,13 @@ func setupPostgres(t *testing.T) (tc.Container, common.TodoRepository) {
 		return nil, nil
 	}
 
-	return postgres, repository.TodoRepositoryImpl{DBPool: dbpool}
+	todoRepository, err := repository.GetTodoRepository(dbpool)
+	if err != nil {
+		t.Fatal(err)
+		return nil, nil
+	}
+
+	return postgres, todoRepository
 }
 
 func TestTodoRepositoryImplOnPostgres1(t *testing.T) {
