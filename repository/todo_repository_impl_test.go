@@ -453,41 +453,31 @@ func TestUpdateWhenTodoIsInvalid2(t *testing.T) {
 	err := todoRepositoryImpl.Update(nil, userId)
 	assert.Equal(t, ErrInvalidTodo, err)
 }
+*/
 
 func TestDelete(t *testing.T) {
-	func1 := func(t *testing.T) {
-		mockCtrl := gomock.NewController(t)
-		dbPoolMock := common.NewMockDBPool(mockCtrl)
-		todoRepositoryImpl = TodoRepositoryImpl{DBPool: dbPoolMock}
+	t.Run("Good case", func(t *testing.T) {
+		todoRepositroy, mock := create(t)
 		userId := uuid.New().String()
 		todoId := uuid.New().String()
-		dbPoolMock.EXPECT().Exec(gomock.Any(), deleteQuery, todoId, userId).Return([]byte{}, nil)
-		err := todoRepositoryImpl.Delete(todoId, userId)
+		mock.ExpectExec(deleteQuery).WithArgs(todoId, userId).WillReturnResult(sqlmock.NewErrorResult(nil))
+		err := todoRepositroy.Delete(todoId, userId)
 		assert.NoError(t, err)
-	}
-	t.Run("When DBPool.Exec returns no error", func1)
+		err = mock.ExpectationsWereMet()
+		if err != nil {
+			t.Error(err)
+		}
+	})
+
 	t.Run("When DBPool.Exec returns an error", func(t *testing.T) {
-		mockCtrl := gomock.NewController(t)
-		dbPoolMock := common.NewMockDBPool(mockCtrl)
-		todoRepositoryImpl = TodoRepositoryImpl{DBPool: dbPoolMock}
+		todoRepositroy, mock := create(t)
 		userId := uuid.New().String()
 		todoId := uuid.New().String()
-		dbPoolMock.EXPECT().Exec(gomock.Any(), deleteQuery, todoId, userId).Return([]byte{}, common.ErrError)
-		err := todoRepositoryImpl.Delete(todoId, userId)
+		mock.ExpectExec(deleteQuery).WithArgs(todoId, userId).WillReturnError(common.ErrError)
+		err := todoRepositroy.Delete(todoId, userId)
 		assert.Equal(t, common.ErrError, err)
 	})
-	t.Run("When DBPool is nil", func(t *testing.T) {
-		mockCtrl := gomock.NewController(t)
-		dbPoolMock := common.NewMockDBPool(mockCtrl)
-		todoRepositoryImpl = TodoRepositoryImpl{DBPool: nil}
-		userId := uuid.New().String()
-		todoId := uuid.New().String()
-		dbPoolMock.EXPECT().Exec(gomock.Any(), deleteQuery, todoId, userId).Times(0)
-		err := todoRepositoryImpl.Delete(todoId, userId)
-		assert.Equal(t, ErrTodoRepositoryInitialization, err)
-	})
 }
-*/
 
 func create(t *testing.T) (common.TodoRepository, sqlmock.Sqlmock) {
 	t.Helper()
