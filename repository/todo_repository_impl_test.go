@@ -13,17 +13,17 @@ import (
 
 func TestGetTodoRepository(t *testing.T) {
 	t.Run("DBPool is nil", func(t *testing.T) {
-		todoRepositroy, err := GetTodoRepository(nil)
+		todoRepository, err := GetTodoRepository(nil)
 		assert.Equal(t, ErrDBPoolIsNil, err)
-		assert.Nil(t, todoRepositroy)
+		assert.Nil(t, todoRepository)
 	})
 	t.Run("DBPool is not nil", func(t *testing.T) {
 		dbPool, _, err := sqlmock.New()
 		if err != nil {
 			t.Fatal(err)
 		}
-		todoRepositroy, err := GetTodoRepository(dbPool)
-		assert.NotNil(t, todoRepositroy)
+		todoRepository, err := GetTodoRepository(dbPool)
+		assert.NotNil(t, todoRepository)
 		assert.Nil(t, err)
 	})
 }
@@ -383,85 +383,66 @@ func TestGetByIdWhenDBPoolIsNil(t *testing.T) {
 	assert.Nil(t, todo)
 	assert.Equal(t, ErrTodoRepositoryInitialization, err)
 }
+*/
 
 func TestUpdate(t *testing.T) {
-	mockCtrl := gomock.NewController(t)
-	dbPoolMock := common.NewMockDBPool(mockCtrl)
-	todoRepositoryImpl = TodoRepositoryImpl{DBPool: dbPoolMock}
-	userId := uuid.New().String()
-	todoDone1 := false
-	todo := model.Todo{Id: uuid.New().String(), Title: "title1", Description: "description1",
-		Done: &todoDone1, CreatedAt: time.Now()}
-	dbPoolMock.EXPECT().Exec(gomock.Any(), updateQuery, todo.Id, todo.Title,
-		todo.Description, todo.Done, todo.CreatedAt, userId).Return(nil, nil)
-	err := todoRepositoryImpl.Update(&todo, userId)
-	assert.NoError(t, err)
-}
+	t.Run("Good case", func(t *testing.T) {
+		todoRepository, mock := create(t)
+		userId := uuid.New().String()
+		todoDone1 := false
+		todo := model.Todo{Id: uuid.New().String(), Title: "title1", Description: "description1",
+			Done: &todoDone1, CreatedAt: time.Now()}
+		mock.ExpectExec(updateQuery).WithArgs(todo.Id, todo.Title,
+			todo.Description, todo.Done, todo.CreatedAt, userId).WillReturnResult(sqlmock.NewErrorResult(nil))
+		err := todoRepository.Update(&todo, userId)
+		assert.NoError(t, err)
+		err = mock.ExpectationsWereMet()
+		if err != nil {
+			t.Error(err)
+		}
+	})
 
-func TestUpdateWhenDBPoolReturnAnError(t *testing.T) {
-	mockCtrl := gomock.NewController(t)
-	dbPoolMock := common.NewMockDBPool(mockCtrl)
-	todoRepositoryImpl = TodoRepositoryImpl{DBPool: dbPoolMock}
-	userId := uuid.New().String()
-	todoDone1 := false
-	todo := model.Todo{Id: uuid.New().String(), Title: "title1", Description: "description1",
-		Done: &todoDone1, CreatedAt: time.Now()}
-	dbPoolMock.EXPECT().Exec(gomock.Any(), updateQuery, todo.Id, todo.Title,
-		todo.Description, todo.Done, todo.CreatedAt, userId).Return(nil, common.ErrError)
-	err := todoRepositoryImpl.Update(&todo, userId)
-	assert.Equal(t, common.ErrError, err)
-}
+	t.Run("When DBPool returns an error", func(t *testing.T) {
+		todoRepository, mock := create(t)
+		userId := uuid.New().String()
+		todoDone1 := false
+		todo := model.Todo{Id: uuid.New().String(), Title: "title1", Description: "description1",
+			Done: &todoDone1, CreatedAt: time.Now()}
+		mock.ExpectExec(updateQuery).WithArgs(todo.Id, todo.Title,
+			todo.Description, todo.Done, todo.CreatedAt, userId).WillReturnError(common.ErrError)
+		err := todoRepository.Update(&todo, userId)
+		assert.Equal(t, common.ErrError, err)
+		err = mock.ExpectationsWereMet()
+		if err != nil {
+			t.Error(err)
+		}
+	})
 
-func TestUpdateWhenDBoolIsNil(t *testing.T) {
-	mockCtrl := gomock.NewController(t)
-	dbPoolMock := common.NewMockDBPool(mockCtrl)
-	todoRepositoryImpl = TodoRepositoryImpl{DBPool: nil}
-	userId := uuid.New().String()
-	todoDone1 := false
-	todo := model.Todo{Id: uuid.New().String(), Title: "title1", Description: "description1",
-		Done: &todoDone1, CreatedAt: time.Now()}
-	dbPoolMock.EXPECT().Exec(gomock.Any(), updateQuery, todo.Id, todo.Title,
-		todo.Description, todo.Done, todo.CreatedAt, userId).Times(0)
-	err := todoRepositoryImpl.Update(&todo, userId)
-	assert.Equal(t, ErrTodoRepositoryInitialization, err)
-}
+	t.Run("When todo is invalid", func(t *testing.T) {
+		todoRepository, _ := create(t)
+		userId := uuid.New().String()
+		todoDone1 := false
+		invalidTodo := model.Todo{Id: uuid.New().String(), Title: "", Description: "description1",
+			Done: &todoDone1, CreatedAt: time.Now()}
+		err := todoRepository.Update(&invalidTodo, userId)
+		assert.Equal(t, ErrInvalidTodo, err)
+	})
 
-func TestUpdateWhenTodoIsInvalid(t *testing.T) {
-	mockCtrl := gomock.NewController(t)
-	dbPoolMock := common.NewMockDBPool(mockCtrl)
-	todoRepositoryImpl = TodoRepositoryImpl{DBPool: dbPoolMock}
-	userId := uuid.New().String()
-	todoDone1 := false
-	invalidTodo := model.Todo{Id: uuid.New().String(), Title: "", Description: "description1",
-		Done: &todoDone1, CreatedAt: time.Now()}
-	dbPoolMock.EXPECT().Exec(gomock.Any(), updateQuery, invalidTodo.Id, invalidTodo.Title,
-		invalidTodo.Description, invalidTodo.Done, invalidTodo.CreatedAt, userId).Times(0)
-	err := todoRepositoryImpl.Update(&invalidTodo, userId)
-	assert.Equal(t, ErrInvalidTodo, err)
+	t.Run("When todo is invalid 2", func(t *testing.T) {
+		todoRepository, _ := create(t)
+		userId := uuid.New().String()
+		err := todoRepository.Update(nil, userId)
+		assert.Equal(t, ErrInvalidTodo, err)
+	})
 }
-
-func TestUpdateWhenTodoIsInvalid2(t *testing.T) {
-	mockCtrl := gomock.NewController(t)
-	dbPoolMock := common.NewMockDBPool(mockCtrl)
-	todoRepositoryImpl = TodoRepositoryImpl{DBPool: dbPoolMock}
-	userId := uuid.New().String()
-	todoDone1 := false
-	invalidTodo := model.Todo{Id: uuid.New().String(), Title: "", Description: "description1",
-		Done: &todoDone1, CreatedAt: time.Now()}
-	dbPoolMock.EXPECT().Exec(gomock.Any(), updateQuery, invalidTodo.Id, invalidTodo.Title,
-		invalidTodo.Description, invalidTodo.Done, invalidTodo.CreatedAt, userId).Times(0)
-	err := todoRepositoryImpl.Update(nil, userId)
-	assert.Equal(t, ErrInvalidTodo, err)
-}
-*/
 
 func TestDelete(t *testing.T) {
 	t.Run("Good case", func(t *testing.T) {
-		todoRepositroy, mock := create(t)
+		todoRepository, mock := create(t)
 		userId := uuid.New().String()
 		todoId := uuid.New().String()
 		mock.ExpectExec(deleteQuery).WithArgs(todoId, userId).WillReturnResult(sqlmock.NewErrorResult(nil))
-		err := todoRepositroy.Delete(todoId, userId)
+		err := todoRepository.Delete(todoId, userId)
 		assert.NoError(t, err)
 		err = mock.ExpectationsWereMet()
 		if err != nil {
@@ -470,12 +451,16 @@ func TestDelete(t *testing.T) {
 	})
 
 	t.Run("When DBPool.Exec returns an error", func(t *testing.T) {
-		todoRepositroy, mock := create(t)
+		todoRepository, mock := create(t)
 		userId := uuid.New().String()
 		todoId := uuid.New().String()
 		mock.ExpectExec(deleteQuery).WithArgs(todoId, userId).WillReturnError(common.ErrError)
-		err := todoRepositroy.Delete(todoId, userId)
+		err := todoRepository.Delete(todoId, userId)
 		assert.Equal(t, common.ErrError, err)
+		err = mock.ExpectationsWereMet()
+		if err != nil {
+			t.Error(err)
+		}
 	})
 }
 
