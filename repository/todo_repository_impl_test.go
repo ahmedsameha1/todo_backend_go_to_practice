@@ -172,128 +172,60 @@ func TestGetAll(t *testing.T) {
 	})
 }
 
-/*
 func TestGetById(t *testing.T) {
-	mockCtrl := gomock.NewController(t)
-	dbPoolMock := common.NewMockDBPool(mockCtrl)
-	dbRowsMock := common.NewMockDBRows(mockCtrl)
-	todoRepositoryImpl = TodoRepositoryImpl{DBPool: dbPoolMock}
-	userId := uuid.New().String()
-	todoId := uuid.New().String()
-	todoDone := false
-	wantedTodo := model.Todo{Id: todoId, Title: "title1",
-		Description: "description1", Done: &todoDone, CreatedAt: time.Now()}
-	gomock.InOrder(
-		dbPoolMock.EXPECT().Query(gomock.Any(), specificTodoQuery, todoId, userId).Return(dbRowsMock, nil),
-		dbRowsMock.EXPECT().Err().Return(nil),
-		dbRowsMock.EXPECT().Next().Return(true),
-		dbRowsMock.EXPECT().Scan(gomock.Any()).SetArg(0, wantedTodo.Id),
-		dbRowsMock.EXPECT().Scan(gomock.Any()).SetArg(0, wantedTodo.Title),
-		dbRowsMock.EXPECT().Scan(gomock.Any()).SetArg(0, wantedTodo.Description),
-		dbRowsMock.EXPECT().Scan(gomock.Any()).SetArg(0, wantedTodo.Done),
-		dbRowsMock.EXPECT().Scan(gomock.Any()).SetArg(0, wantedTodo.CreatedAt),
-	)
-	todo, err := todoRepositoryImpl.GetById(todoId, userId)
-	assert.Equal(t, wantedTodo, *todo)
-	assert.Nil(t, err)
-}
+	t.Run("Good case", func(t *testing.T) {
+		todoRepository, mock := create(t)
+		userId := uuid.New().String()
+		todoId := uuid.New().String()
+		todoDone := false
+		wantedTodo := model.Todo{Id: todoId, Title: "title1",
+			Description: "description1", Done: &todoDone, CreatedAt: time.Now()}
+		rows := sqlmock.NewRows([]string{"id", "title", "description", "done", "created_at"}).
+			AddRow(wantedTodo.Id, wantedTodo.Title, wantedTodo.Description, wantedTodo.Done, wantedTodo.CreatedAt)
+		mock.ExpectQuery(specificTodoQuery).WithArgs(todoId, userId).WillReturnRows(rows)
+		todo, err := todoRepository.GetById(todoId, userId)
+		assert.Equal(t, wantedTodo, *todo)
+		assert.Nil(t, err)
+		err = mock.ExpectationsWereMet()
+		if err != nil {
+			t.Error(err)
+		}
+	})
 
-func TestGetByIdWhenNotFound(t *testing.T) {
-	mockCtrl := gomock.NewController(t)
-	dbPoolMock := common.NewMockDBPool(mockCtrl)
-	dbRowsMock := common.NewMockDBRows(mockCtrl)
-	todoRepositoryImpl = TodoRepositoryImpl{DBPool: dbPoolMock}
-	userId := uuid.New().String()
-	todoId := uuid.New().String()
-	gomock.InOrder(
-		dbPoolMock.EXPECT().Query(gomock.Any(), specificTodoQuery, todoId, userId).Return(dbRowsMock, nil),
-		dbRowsMock.EXPECT().Err().Return(nil),
-		dbRowsMock.EXPECT().Next().Return(false),
-	)
-	todo, err := todoRepositoryImpl.GetById(todoId, userId)
-	assert.Nil(t, todo)
-	assert.Equal(t, ErrNotFound, err)
-}
+	t.Run("When that todo is not found", func(t *testing.T) {
+		todoRepository, mock := create(t)
+		userId := uuid.New().String()
+		todoId := uuid.New().String()
+		rows := sqlmock.NewRows([]string{"id", "title", "description", "done", "created_at"})
+		mock.ExpectQuery(specificTodoQuery).WithArgs(todoId, userId).WillReturnRows(rows)
+		todo, err := todoRepository.GetById(todoId, userId)
+		assert.Nil(t, todo)
+		assert.Equal(t, ErrNotFound, err)
+		err = mock.ExpectationsWereMet()
+		if err != nil {
+			t.Error(err)
+		}
+	})
 
-func TestGetByIdWhenScanReturnAnError(t *testing.T) {
-	mockCtrl := gomock.NewController(t)
-	dbPoolMock := common.NewMockDBPool(mockCtrl)
-	dbRowsMock := common.NewMockDBRows(mockCtrl)
-	todoRepositoryImpl = TodoRepositoryImpl{DBPool: dbPoolMock}
-	userId := uuid.New().String()
-	todoId := uuid.New().String()
-	todoDone := false
-	wantedTodo := model.Todo{Id: todoId, Title: "title1",
-		Description: "description1", Done: &todoDone, CreatedAt: time.Now()}
-	gomock.InOrder(
-		dbPoolMock.EXPECT().Query(gomock.Any(), specificTodoQuery, todoId, userId).Return(dbRowsMock, nil),
-		dbRowsMock.EXPECT().Err().Return(nil),
-		dbRowsMock.EXPECT().Next().Return(true),
-		dbRowsMock.EXPECT().Scan(gomock.Any()).SetArg(0, wantedTodo.Id),
-		dbRowsMock.EXPECT().Scan(gomock.Any()).SetArg(0, wantedTodo.Title).Return(common.ErrError),
-	)
-	todo, err := todoRepositoryImpl.GetById(todoId, userId)
-	assert.Nil(t, todo)
-	assert.NotNil(t, err)
+	t.Run("When rows.Scan() returns an error", func(t *testing.T) {
+		todoRepository, mock := create(t)
+		userId := uuid.New().String()
+		todoId := uuid.New().String()
+		todoDone := false
+		wantedTodo := model.Todo{Id: todoId, Title: "title1",
+			Description: "description1", Done: &todoDone, CreatedAt: time.Now()}
+		rows := sqlmock.NewRows([]string{"id", "title", "description", "done", "created_at"}).
+			AddRow(wantedTodo.Id, wantedTodo.Title, wantedTodo.Description, "", wantedTodo.CreatedAt)
+		mock.ExpectQuery(specificTodoQuery).WithArgs(todoId, userId).WillReturnRows(rows)
+		todo, err := todoRepository.GetById(todoId, userId)
+		assert.Nil(t, todo)
+		assert.NotNil(t, err)
+		err = mock.ExpectationsWereMet()
+		if err != nil {
+			t.Error(err)
+		}
+	})
 }
-
-func TestGetByIdWhenScanReturnAnError2(t *testing.T) {
-	mockCtrl := gomock.NewController(t)
-	dbPoolMock := common.NewMockDBPool(mockCtrl)
-	dbRowsMock := common.NewMockDBRows(mockCtrl)
-	todoRepositoryImpl = TodoRepositoryImpl{DBPool: dbPoolMock}
-	userId := uuid.New().String()
-	todoId := uuid.New().String()
-	todoDone := false
-	wantedTodo := model.Todo{Id: todoId, Title: "title1",
-		Description: "description1", Done: &todoDone, CreatedAt: time.Now()}
-	gomock.InOrder(
-		dbPoolMock.EXPECT().Query(gomock.Any(), specificTodoQuery, todoId, userId).Return(dbRowsMock, nil),
-		dbRowsMock.EXPECT().Err().Return(nil),
-		dbRowsMock.EXPECT().Next().Return(true),
-		dbRowsMock.EXPECT().Scan(gomock.Any()).SetArg(0, wantedTodo.Id),
-		dbRowsMock.EXPECT().Scan(gomock.Any()).SetArg(0, wantedTodo.Title),
-		dbRowsMock.EXPECT().Scan(gomock.Any()).SetArg(0, wantedTodo.Description),
-		dbRowsMock.EXPECT().Scan(gomock.Any()).SetArg(0, wantedTodo.Done),
-		dbRowsMock.EXPECT().Scan(gomock.Any()).SetArg(0, wantedTodo.CreatedAt).Return(common.ErrError),
-	)
-	todo, err := todoRepositoryImpl.GetById(todoId, userId)
-	assert.Nil(t, todo)
-	assert.Equal(t, common.ErrError, err)
-}
-
-func TestGetByIdWhenErrReturnAnError(t *testing.T) {
-	mockCtrl := gomock.NewController(t)
-	dbPoolMock := common.NewMockDBPool(mockCtrl)
-	dbRowsMock := common.NewMockDBRows(mockCtrl)
-	todoRepositoryImpl = TodoRepositoryImpl{DBPool: dbPoolMock}
-	userId := uuid.New().String()
-	todoId := uuid.New().String()
-	gomock.InOrder(
-		dbPoolMock.EXPECT().Query(gomock.Any(), specificTodoQuery, todoId, userId).Return(dbRowsMock, nil),
-		dbRowsMock.EXPECT().Err().Return(common.ErrError),
-	)
-	todo, err := todoRepositoryImpl.GetById(todoId, userId)
-	assert.Nil(t, todo)
-	assert.Equal(t, common.ErrError, err)
-}
-
-func TestGetByIdWhenDBPoolIsNil(t *testing.T) {
-	mockCtrl := gomock.NewController(t)
-	dbPoolMock := common.NewMockDBPool(mockCtrl)
-	dbRowsMock := common.NewMockDBRows(mockCtrl)
-	todoRepositoryImpl = TodoRepositoryImpl{DBPool: nil}
-	userId := uuid.New().String()
-	todoId := uuid.New().String()
-	dbPoolMock.EXPECT().Query(gomock.Any(), gomock.Any()).Times(0)
-	dbRowsMock.EXPECT().Err().Times(0)
-	dbRowsMock.EXPECT().Next().Times(0)
-	dbRowsMock.EXPECT().Scan(gomock.Any()).Times(0)
-	todo, err := todoRepositoryImpl.GetById(todoId, userId)
-	assert.Nil(t, todo)
-	assert.Equal(t, ErrTodoRepositoryInitialization, err)
-}
-*/
 
 func TestUpdate(t *testing.T) {
 	t.Run("Good case", func(t *testing.T) {

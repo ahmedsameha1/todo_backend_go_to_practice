@@ -13,11 +13,11 @@ var ErrInvalidTodo = errors.New("invalid todo")
 var ErrDBPoolIsNil = errors.New("DBPool is nil")
 
 const (
-	insertTodoQuery        string = "insert into todo (id, title, description, done, created_at, user_id) values ($1::UUID, $2, $3, $4, $5::timestamptz, $6::UUID)"
-	allTodosQuery          string = "select id, title, description, done, created_at from todo where user_id = $1::UUID order by created_at desc"
-	specificTodoQuery      string = "select id, title, description, done, created_at from todo where id = $1::UUID and user_id = $2::UUID"
-	updateQuery            string = "update todo set title = $2, description = $3, done = $4, created_at = $5 where id = $1::UUID and user_id = $6::UUID"
-	deleteQuery            string = "delete from todo where id = $1::UUID and user_id = $2::UUID"
+	insertTodoQuery   string = "insert into todo (id, title, description, done, created_at, user_id) values ($1::UUID, $2, $3, $4, $5::timestamptz, $6::UUID)"
+	allTodosQuery     string = "select id, title, description, done, created_at from todo where user_id = $1::UUID order by created_at desc"
+	specificTodoQuery string = "select id, title, description, done, created_at from todo where id = $1::UUID and user_id = $2::UUID"
+	updateQuery       string = "update todo set title = $2, description = $3, done = $4, created_at = $5 where id = $1::UUID and user_id = $6::UUID"
+	deleteQuery       string = "delete from todo where id = $1::UUID and user_id = $2::UUID"
 )
 
 type todoRepositoryImpl struct {
@@ -28,7 +28,7 @@ func GetTodoRepository(dbPool *sql.DB) (common.TodoRepository, error) {
 	if dbPool == nil {
 		return nil, ErrDBPoolIsNil
 	}
-	return todoRepositoryImpl{DBPool:  dbPool,}, nil
+	return todoRepositoryImpl{DBPool: dbPool}, nil
 }
 
 func (tr todoRepositoryImpl) Create(todo *model.Todo, userId string) (err error) {
@@ -57,20 +57,18 @@ func (tr todoRepositoryImpl) GetAll(userId string) ([]model.Todo, error) {
 }
 
 func (tr todoRepositoryImpl) GetById(id string, userId string) (*model.Todo, error) {
-	rows, _ := tr.DBPool.Query(specificTodoQuery, id, userId)
-	if err := rows.Err(); err != nil {
-		return nil, err
-	} else {
-		var todo model.Todo
-		if rows.Next() {
-			if err := rows.Scan(&todo.Id, &todo.Title, &todo.Description, &todo.Done, &todo.CreatedAt); err != nil {
-				return nil, err
-			}
-			return &todo, nil
-		} else {
+	row := tr.DBPool.QueryRow(specificTodoQuery, id, userId)
+	var todo model.Todo
+	if err := row.Scan(&todo.Id, &todo.Title, &todo.Description, &todo.Done, &todo.CreatedAt); err != nil {
+		if err == sql.ErrNoRows {
 			return nil, ErrNotFound
+		} else {
+			return nil, err
 		}
+	} else {
+		return &todo, nil
 	}
+
 }
 
 func (tr todoRepositoryImpl) Update(todo *model.Todo, userId string) error {
