@@ -122,16 +122,25 @@ func TestGetAll(t *testing.T) {
 		}
 	})
 
-	t.Run("When a scan() call returns an error", func(t *testing.T) {
+	t.Run("When Query returns an error", func(t *testing.T) {
+		todoRepository, mock := create(t)
+		userId := uuid.New().String()
+		mock.ExpectQuery(allTodosQuery).WithArgs(userId).WillReturnError(common.ErrError)
+		todos, err := todoRepository.GetAll(userId)
+		assert.Nil(t, todos)
+		assert.Equal(t, common.ErrError, err)
+		err = mock.ExpectationsWereMet()
+		if err != nil {
+			t.Error(err)
+		}
+	})
+
+	t.Run("When a rows.Scan() call returns an error", func(t *testing.T) {
 		todoRepository, mock := create(t)
 		userId := uuid.New().String()
 		todoDone1 := false
-		todoDone2 := true
-		todoDone3 := false
 		wantedTodos := []model.Todo{
 			{Id: uuid.New().String(), Title: "title1", Description: "description1", Done: &todoDone1, CreatedAt: time.Now()},
-			{Id: uuid.New().String(), Title: "title2", Description: "description2", Done: &todoDone2, CreatedAt: time.Now()},
-			{Id: uuid.New().String(), Title: "title3", Description: "description3", Done: &todoDone3, CreatedAt: time.Now()},
 		}
 		rows := sqlmock.NewRows([]string{"id", "title", "description", "done", "created_at"}).
 			AddRow(wantedTodos[0].Id, wantedTodos[0].Title, wantedTodos[0].Description, "", wantedTodos[0].CreatedAt)

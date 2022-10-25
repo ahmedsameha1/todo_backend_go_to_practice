@@ -41,7 +41,11 @@ func (tr todoRepositoryImpl) Create(todo *model.Todo, userId string) (err error)
 }
 
 func (tr todoRepositoryImpl) GetAll(userId string) ([]model.Todo, error) {
-	rows, _ := tr.DBPool.Query(allTodosQuery, userId)
+	rows, err := tr.DBPool.Query(allTodosQuery, userId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 	todos := []model.Todo{}
 	for rows.Next() {
 		var todo model.Todo
