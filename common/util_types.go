@@ -33,19 +33,9 @@ type TodoRepository interface {
 }
 
 type ErrorHandler interface {
-	HandleAppError(WebContext, error, int)
+	HandleAppError(*gin.Context, error, int)
 }
 
 type AuthClient interface {
 	VerifyIDToken(ctx context.Context, idToken string) (*auth.Token, error)
-}
-
-type WebContext interface {
-	JSON(code int, obj any)
-	ShouldBindJSON(obj any) error
-	Param(key string) string
-	GetHeader(key string) string
-	Set(key string, value any)
-	Get(key string) (value any, exists bool)
-	Next()
 }

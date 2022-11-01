@@ -18,9 +18,9 @@ type ErrorHandlerImpl struct {
 	Logger common.Logger
 }
 
-func (eh ErrorHandlerImpl) HandleAppError(webContext common.WebContext, someError error, code int) {
+func (eh ErrorHandlerImpl) HandleAppError(webContext *gin.Context, someError error, code int) {
 	eh.Logger.Printf("%v\n", someError)
-	webContext.JSON(code, someError)
+	webContext.AbortWithStatusJSON(code, gin.H{"error": someError.Error()})
 }
 
 func Create(todoRepository common.TodoRepository, errorHandler common.ErrorHandler) gin.HandlerFunc {
