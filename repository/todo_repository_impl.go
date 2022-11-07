@@ -13,11 +13,11 @@ var ErrInvalidTodo = errors.New("invalid todo")
 var ErrDBPoolIsNil = errors.New("DBPool is nil")
 
 const (
-	insertTodoQuery   string = "insert into todo (id, title, description, done, created_at, user_id) values ($1::UUID, $2, $3, $4, $5::timestamptz, $6::UUID)"
-	allTodosQuery     string = "select id, title, description, done, created_at from todo where user_id = $1::UUID order by created_at desc"
-	specificTodoQuery string = "select id, title, description, done, created_at from todo where id = $1::UUID and user_id = $2::UUID"
-	updateQuery       string = "update todo set title = $2, description = $3, done = $4, created_at = $5 where id = $1::UUID and user_id = $6::UUID"
-	deleteQuery       string = "delete from todo where id = $1::UUID and user_id = $2::UUID"
+	insertTodoQuery   string = "insert into todo (id, title, description, done, created_at, user_id) values ($1::UUID, $2, $3, $4, $5::timestamptz, $6)"
+	allTodosQuery     string = "select id, title, description, done, created_at from todo where user_id = $1 order by created_at desc"
+	specificTodoQuery string = "select id, title, description, done, created_at from todo where id = $1::UUID and user_id = $2"
+	updateQuery       string = "update todo set title = $2, description = $3, done = $4, created_at = $5 where id = $1::UUID and user_id = $6"
+	deleteQuery       string = "delete from todo where id = $1::UUID and user_id = $2"
 )
 
 type todoRepositoryImpl struct {

@@ -4,5 +4,5 @@ create table todo (
     description varchar(10000) not null,
     done bool not null,
     created_at timestamptz not null,
-    user_id uuid not null
+    user_id varchar(40) not null
 );
