@@ -52,6 +52,7 @@ func (tr todoRepositoryImpl) GetAll(userId string) ([]model.Todo, error) {
 		if err := rows.Scan(&todo.Id, &todo.Title, &todo.Description, &todo.Done, &todo.CreatedAt); err != nil {
 			return nil, err
 		}
+		todo.CreatedAt = todo.CreatedAt.UTC()
 		todos = append(todos, todo)
 	}
 	if err := rows.Err(); err != nil {
@@ -70,6 +71,7 @@ func (tr todoRepositoryImpl) GetById(id string, userId string) (*model.Todo, err
 			return nil, err
 		}
 	} else {
+		todo.CreatedAt = todo.CreatedAt.UTC()
 		return &todo, nil
 	}
 
