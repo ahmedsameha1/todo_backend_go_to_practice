@@ -15,6 +15,7 @@ import (
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/common"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/middleware"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/model"
+	"github.com/ahmedsameha1/todo_backend_go_to_practice/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
@@ -231,6 +232,21 @@ func TestGetById(t *testing.T) {
 			t.Fatal(err)
 		}
 		assert.Equal(t, todo, got)
+	})
+
+	t.Run("Todo not found", func(t *testing.T) {
+		todoRepositoryMock, gin_context, _, errorHandlerMock := createMocks(t)
+		todoId := uuid.New()
+		token := &auth.Token{UID: "heowh"}
+		uUidParseMock := func(id string) (uuid.UUID, error) {
+			return todoId, nil
+		}
+		gin_context.Params = append(gin_context.Params, gin.Param{Key: "id", Value: todoId.String()})
+		gin_context.Set(middleware.AuthToken, token)
+		todoRepositoryMock.EXPECT().GetById(todoId.String(), token.UID).Return(nil, repository.ErrNotFound)
+		errorHandlerMock.EXPECT().HandleAppError(gin_context, repository.ErrNotFound, http.StatusNotFound)
+		getById := GetById(todoRepositoryMock, errorHandlerMock, uUidParseMock)
+		getById(gin_context)
 	})
 
 	t.Run("When invalid id is sent as a path parameter in the url", func(t *testing.T) {

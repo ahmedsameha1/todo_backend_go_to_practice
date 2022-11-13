@@ -8,6 +8,7 @@ import (
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/common"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/middleware"
 	"github.com/ahmedsameha1/todo_backend_go_to_practice/model"
+	"github.com/ahmedsameha1/todo_backend_go_to_practice/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -79,7 +80,11 @@ func GetById(todoRepository common.TodoRepository, errorHandler common.ErrorHand
 					token := token.(*auth.Token)
 					todo, err := todoRepository.GetById(id, token.UID)
 					if err != nil {
-						errorHandler.HandleAppError(ctx, err, http.StatusInternalServerError)
+						if err == repository.ErrNotFound {
+							errorHandler.HandleAppError(ctx, err, http.StatusNotFound)
+						} else {
+							errorHandler.HandleAppError(ctx, err, http.StatusInternalServerError)
+						}
 					} else {
 						ctx.JSON(http.StatusOK, todo)
 					}

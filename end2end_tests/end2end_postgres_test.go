@@ -214,11 +214,7 @@ func TestIt(t *testing.T) {
 	})
 
 	t.Run("POST method - /todos: Good case", func(t *testing.T) {
-		expectedTodoJson, err := json.Marshal(expectedTodo)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		request, err := http.NewRequest("POST", "http://localhost:8080/todos", bytes.NewBuffer(expectedTodoJson))
+		request, err := http.NewRequest("GET", "http://localhost:8080/todos", nil)
 		request.Header.Set(middleware.AUTHORIZATION, middleware.BEARER+idToken)
 		if err != nil {
 			log.Fatalln(err)
@@ -230,6 +226,31 @@ func TestIt(t *testing.T) {
 		defer res.Body.Close()
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		var todos []model.Todo
+		err = json.Unmarshal(body, &todos)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		assert.Empty(t, todos)
+		expectedTodoJson, err := json.Marshal(expectedTodo)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		request, err = http.NewRequest("POST", "http://localhost:8080/todos", bytes.NewBuffer(expectedTodoJson))
+		request.Header.Set(middleware.AUTHORIZATION, middleware.BEARER+idToken)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		res, err = http.DefaultClient.Do(request)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		defer res.Body.Close()
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+		body, err = io.ReadAll(res.Body)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -254,7 +275,6 @@ func TestIt(t *testing.T) {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		var todos []model.Todo
 		err = json.Unmarshal(body, &todos)
 		if err != nil {
 			log.Fatalln(err)
@@ -320,7 +340,7 @@ func TestIt(t *testing.T) {
 		}
 		assert.Len(t, todos, 1)
 	})
-	
+
 	t.Run("PUT method - /todos: Good case", func(t *testing.T) {
 		todoDone := true
 		ti, _ := time.Parse(time.RFC3339, "2022-09-21T14:07:05.768Z")
@@ -589,7 +609,7 @@ func TestIt(t *testing.T) {
 		assert.Len(t, todos, 2)
 		returnedTodo := todos[1]
 		assert.Equal(t, toBeDeletedTodo, returnedTodo)
-		request, err = http.NewRequest("DELETE", "http://localhost:8080/todos/" + toBeDeletedTodoId, nil)
+		request, err = http.NewRequest("DELETE", "http://localhost:8080/todos/"+toBeDeletedTodoId, nil)
 		request.Header.Set(middleware.AUTHORIZATION, middleware.BEARER+idToken)
 		if err != nil {
 			log.Fatalln(err)
@@ -664,7 +684,7 @@ func TestIt(t *testing.T) {
 		assert.Len(t, todos, 2)
 		returnedTodo := todos[1]
 		assert.Equal(t, toBeDeletedTodo, returnedTodo)
-		request, err = http.NewRequest("DELETE", "http://localhost:8080/todos/" + "turw", nil)
+		request, err = http.NewRequest("DELETE", "http://localhost:8080/todos/"+"turw", nil)
 		request.Header.Set(middleware.AUTHORIZATION, middleware.BEARER+idToken)
 		if err != nil {
 			log.Fatalln(err)
@@ -684,8 +704,8 @@ func TestIt(t *testing.T) {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		assert.True(t, strings.Contains(got["error"].(string), "invalid"))	
-		assert.True(t, strings.Contains(got["error"].(string), "UUID"))	
+		assert.True(t, strings.Contains(got["error"].(string), "invalid"))
+		assert.True(t, strings.Contains(got["error"].(string), "UUID"))
 	})
 
 	t.Run("DELETE method - /todos/:id: todo id is diferent", func(t *testing.T) {
@@ -699,7 +719,7 @@ func TestIt(t *testing.T) {
 			log.Fatalln(err)
 		}
 		http.DefaultClient.Do(request)
-		request, err = http.NewRequest("DELETE", "http://localhost:8080/todos/" + uuid.New().String(), nil)
+		request, err = http.NewRequest("DELETE", "http://localhost:8080/todos/"+uuid.New().String(), nil)
 		request.Header.Set(middleware.AUTHORIZATION, middleware.BEARER+idToken)
 		if err != nil {
 			log.Fatalln(err)
@@ -749,7 +769,7 @@ func TestIt(t *testing.T) {
 			log.Fatalln(err)
 		}
 		http.DefaultClient.Do(request)
-		request, err = http.NewRequest("DELETE", "http://localhost:8080/todos/" + toBeDeletedTodoId, nil)
+		request, err = http.NewRequest("DELETE", "http://localhost:8080/todos/"+toBeDeletedTodoId, nil)
 		request.Header.Set(middleware.AUTHORIZATION, middleware.BEARER+idToken2)
 		if err != nil {
 			log.Fatalln(err)
@@ -786,6 +806,217 @@ func TestIt(t *testing.T) {
 			log.Fatalln(err)
 		}
 		assert.Len(t, todos1, 2)
+	})
+
+	t.Run("GET method - /todos/:id: Good case", func(t *testing.T) {
+		request, err := http.NewRequest("GET", "http://localhost:8080/todos/"+expectedTodo.Id, nil)
+		request.Header.Set(middleware.AUTHORIZATION, middleware.BEARER+idToken)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		res, err := http.DefaultClient.Do(request)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		defer res.Body.Close()
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		var todo model.Todo
+		err = json.Unmarshal(body, &todo)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		assert.Equal(t, expectedTodo, todo)
+	})
+
+	t.Run("GET method - /todos/:id: invalid todo id", func(t *testing.T) {
+		request, err := http.NewRequest("GET", "http://localhost:8080/todos/"+"vnx", nil)
+		request.Header.Set(middleware.AUTHORIZATION, middleware.BEARER+idToken)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		res, err := http.DefaultClient.Do(request)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		defer res.Body.Close()
+		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		var got gin.H
+		err = json.Unmarshal(body, &got)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		assert.True(t, strings.Contains(got["error"].(string), "invalid"))
+		assert.True(t, strings.Contains(got["error"].(string), "UUID"))
+	})
+
+	t.Run("GET method - /todos/:id: todo is not found", func(t *testing.T) {
+		request, err := http.NewRequest("GET", "http://localhost:8080/todos/"+uuid.New().String(), nil)
+		request.Header.Set(middleware.AUTHORIZATION, middleware.BEARER+idToken)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		res, err := http.DefaultClient.Do(request)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		defer res.Body.Close()
+		assert.Equal(t, http.StatusNotFound, res.StatusCode)
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		var got gin.H
+		err = json.Unmarshal(body, &got)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		assert.Equal(t, got["error"].(string), repository.ErrNotFound.Error())
+	})
+
+	t.Run("GET method - /todos/:id: diferent user id", func(t *testing.T) {
+		request, err := http.NewRequest("GET", "http://localhost:8080/todos/"+expectedTodo.Id, nil)
+		request.Header.Set(middleware.AUTHORIZATION, middleware.BEARER+idToken2)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		res, err := http.DefaultClient.Do(request)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		defer res.Body.Close()
+		assert.Equal(t, http.StatusNotFound, res.StatusCode)
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		var got gin.H
+		err = json.Unmarshal(body, &got)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		assert.Equal(t, got["error"].(string), repository.ErrNotFound.Error())
+	})
+
+	t.Run("GET method - /todos: get all todos for only this user", func(t *testing.T) {
+		ti3, _ := time.Parse(time.RFC3339, "2000-09-21T14:07:05.768Z")
+		todoId3 := uuid.New().String()
+		todoDone3 := false
+		expectedTodo3 := model.Todo{
+			Id:          todoId3,
+			Title:       "title3",
+			Description: "description3",
+			Done:        &todoDone3,
+			CreatedAt:   ti3,
+		}
+		ti4, _ := time.Parse(time.RFC3339, "2001-09-21T14:07:05.768Z")
+		todoId4 := uuid.New().String()
+		todoDone4 := true
+		expectedTodo4 := model.Todo{
+			Id:          todoId4,
+			Title:       "title4",
+			Description: "description4",
+			Done:        &todoDone4,
+			CreatedAt:   ti4,
+		}
+		ti5, _ := time.Parse(time.RFC3339, "2002-09-21T14:07:05.768Z")
+		todoId5 := uuid.New().String()
+		todoDone5 := false
+		expectedTodo5 := model.Todo{
+			Id:          todoId5,
+			Title:       "title5",
+			Description: "description5",
+			Done:        &todoDone5,
+			CreatedAt:   ti5,
+		}
+		expectedTodoJson3, err := json.Marshal(expectedTodo3)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		request, err := http.NewRequest("POST", "http://localhost:8080/todos", bytes.NewBuffer(expectedTodoJson3))
+		request.Header.Set(middleware.AUTHORIZATION, middleware.BEARER+idToken2)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		http.DefaultClient.Do(request)
+		expectedTodoJson4, err := json.Marshal(expectedTodo4)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		request, err = http.NewRequest("POST", "http://localhost:8080/todos", bytes.NewBuffer(expectedTodoJson4))
+		request.Header.Set(middleware.AUTHORIZATION, middleware.BEARER+idToken2)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		http.DefaultClient.Do(request)
+		expectedTodoJson5, err := json.Marshal(expectedTodo5)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		request, err = http.NewRequest("POST", "http://localhost:8080/todos", bytes.NewBuffer(expectedTodoJson5))
+		request.Header.Set(middleware.AUTHORIZATION, middleware.BEARER+idToken2)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		http.DefaultClient.Do(request)
+		request, err = http.NewRequest("GET", "http://localhost:8080/todos", nil)
+		request.Header.Set(middleware.AUTHORIZATION, middleware.BEARER+idToken)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		res, err := http.DefaultClient.Do(request)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		defer res.Body.Close()
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		var todos []model.Todo
+		err = json.Unmarshal(body, &todos)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		assert.Len(t, todos, 2)
+		returnedTodo := todos[0]
+		assert.Equal(t, expectedTodo, returnedTodo)
+		returnedTodo = todos[1]
+		assert.Equal(t, toBeDeletedTodo, returnedTodo)
+		request, err = http.NewRequest("GET", "http://localhost:8080/todos", nil)
+		request.Header.Set(middleware.AUTHORIZATION, middleware.BEARER+idToken2)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		res, err = http.DefaultClient.Do(request)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		defer res.Body.Close()
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+		body, err = io.ReadAll(res.Body)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		err = json.Unmarshal(body, &todos)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		assert.Len(t, todos, 3)
+		returnedTodo = todos[0]
+		assert.Equal(t, expectedTodo5, returnedTodo)
+		returnedTodo = todos[1]
+		assert.Equal(t, expectedTodo4, returnedTodo)
+		returnedTodo = todos[2]
+		assert.Equal(t, expectedTodo3, returnedTodo)
 	})
 
 }
